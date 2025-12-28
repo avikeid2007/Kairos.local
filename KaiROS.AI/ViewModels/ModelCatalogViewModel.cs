@@ -11,6 +11,8 @@ public partial class ModelCatalogViewModel : ViewModelBase
     private readonly IModelManagerService _modelManager;
     private readonly Dictionary<string, CancellationTokenSource> _downloadCts = new();
     
+    public event EventHandler? ModelActivated;
+    
     [ObservableProperty]
     private ObservableCollection<ModelItemViewModel> _models = new();
     
@@ -182,7 +184,12 @@ public partial class ModelCatalogViewModel : ViewModelBase
             var success = await _modelManager.SetActiveModelAsync(modelVm.Model);
             modelVm.IsActive = success;
             
-            if (!success)
+            if (success)
+            {
+                // Navigate to Chat after model loads
+                ModelActivated?.Invoke(this, EventArgs.Empty);
+            }
+            else
             {
                 modelVm.ErrorMessage = "Failed to load model";
             }

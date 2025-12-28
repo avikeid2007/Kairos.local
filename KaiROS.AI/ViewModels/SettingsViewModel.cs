@@ -10,6 +10,9 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IHardwareDetectionService _hardwareService;
     private readonly IModelManagerService _modelManager;
+    private readonly ChatViewModel _chatViewModel;
+    
+    private const string DefaultSystemPrompt = "You are a helpful, friendly AI assistant. Be concise and clear.";
     
     [ObservableProperty]
     private HardwareInfo? _hardware;
@@ -32,10 +35,23 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string _backendStatus = string.Empty;
     
-    public SettingsViewModel(IHardwareDetectionService hardwareService, IModelManagerService modelManager)
+    [ObservableProperty]
+    private string _systemPrompt = DefaultSystemPrompt;
+    
+    public SettingsViewModel(IHardwareDetectionService hardwareService, IModelManagerService modelManager, ChatViewModel chatViewModel)
     {
         _hardwareService = hardwareService;
         _modelManager = modelManager;
+        _chatViewModel = chatViewModel;
+        
+        // Initialize system prompt from ChatViewModel
+        _systemPrompt = chatViewModel.SystemPrompt;
+    }
+    
+    partial void OnSystemPromptChanged(string value)
+    {
+        // Sync to ChatViewModel
+        _chatViewModel.SystemPrompt = value;
     }
     
     public override async Task InitializeAsync()
@@ -125,5 +141,11 @@ public partial class SettingsViewModel : ViewModelBase
     {
         _hardwareService.ClearCache();
         await InitializeAsync();
+    }
+    
+    [RelayCommand]
+    private void ResetSystemPrompt()
+    {
+        SystemPrompt = DefaultSystemPrompt;
     }
 }

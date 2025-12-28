@@ -10,13 +10,99 @@
     </UserControl.Resources>
     
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Session Sidebar -->
+        <Border Background="{StaticResource CardBrush}"
+                CornerRadius="12"
+                Margin="0,0,16,0"
+                Padding="12"
+                Width="220"
+                Visibility="{Binding IsSessionListVisible, Converter={StaticResource BoolToVis}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- New Chat Button -->
+                <Button Command="{Binding NewSessionCommand}"
+                        Style="{StaticResource AccentButton}"
+                        Margin="0,0,0,12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="➕" Margin="0,0,8,0"/>
+                        <TextBlock Text="New Chat"/>
+                    </StackPanel>
+                </Button>
+                
+                <!-- Session List -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Sessions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceLightBrush}"
+                                        CornerRadius="8"
+                                        Padding="12,10"
+                                        Margin="0,0,0,8"
+                                        Cursor="Hand">
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" 
+                                                      Command="{Binding DataContext.LoadSessionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                      CommandParameter="{Binding}"/>
+                                    </Border.InputBindings>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" 
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       FontWeight="Medium"/>
+                                            <TextBlock Foreground="{StaticResource TextMutedBrush}" 
+                                                       FontSize="11"
+                                                       Margin="0,4,0,0">
+                                                <Run Text="{Binding MessageCount, Mode=OneWay}"/>
+                                                <Run Text="messages •"/>
+                                                <Run Text="{Binding UpdatedAt, StringFormat='{}{0:MMM d}', Mode=OneWay}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" 
+                                                Content="🗑" 
+                                                Style="{StaticResource IconButton}"
+                                                Command="{Binding DataContext.DeleteSessionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                VerticalAlignment="Center"
+                                                Opacity="0.6"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                
+                <!-- Empty State -->
+                <TextBlock Grid.Row="1"
+                           Text="No chat history yet"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="{Binding Sessions.Count, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"/>
+            </Grid>
+        </Border>
+        
+        <!-- Main Chat Area -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
         
         <!-- Header with Model Info -->
         <Border Background="{StaticResource CardBrush}" 
@@ -51,50 +137,8 @@
             </Grid>
         </Border>
         
-        <!-- System Prompt (Collapsible) -->
-        <Border Grid.Row="1" 
-                Background="{StaticResource CardBrush}" 
-                CornerRadius="12" 
-                Padding="16"
-                Margin="0,0,0,16">
-            <StackPanel>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    
-                    <TextBlock Text="System Prompt" 
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
-                    
-                    <Button Grid.Column="1" 
-                            Command="{Binding ToggleSystemPromptCommand}">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
-                                <Setter Property="Content" Value="▼"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsSystemPromptExpanded}" Value="True">
-                                        <Setter Property="Content" Value="▲"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </Grid>
-                
-                <TextBox Text="{Binding SystemPrompt, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource ModernTextBox}"
-                         AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         MaxHeight="120"
-                         Margin="0,12,0,0"
-                         Visibility="{Binding IsSystemPromptExpanded, Converter={StaticResource BoolToVis}}"/>
-            </StackPanel>
-        </Border>
-        
         <!-- Messages -->
-        <ScrollViewer Grid.Row="2" 
+        <ScrollViewer Grid.Row="1" 
                       x:Name="MessagesScroller"
                       VerticalScrollBarVisibility="Auto"
                       Margin="0,0,0,16">
@@ -172,7 +216,7 @@
         </ScrollViewer>
         
         <!-- Input Area -->
-        <Border Grid.Row="3" 
+        <Border Grid.Row="2" 
                 Background="{StaticResource CardBrush}" 
                 CornerRadius="12" 
                 Padding="16">
@@ -210,7 +254,7 @@
         </Border>
         
         <!-- Performance Stats -->
-        <Border Grid.Row="4" 
+        <Border Grid.Row="3" 
                 Background="{StaticResource SurfaceBrush}" 
                 CornerRadius="8" 
                 Padding="12"
@@ -236,5 +280,7 @@
                 </TextBlock>
             </StackPanel>
         </Border>
+        </Grid>
     </Grid>
 </UserControl>
+

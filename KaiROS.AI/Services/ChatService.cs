@@ -81,25 +81,40 @@ public class ChatService : IChatService
         var inferenceParams = new InferenceParams
         {
             MaxTokens = 2048,
-            AntiPrompts = new[] { "User:", "\nUser:", "###" }
+            AntiPrompts = new[] { "User:", "\nUser:", "###", "Human:", "\nHuman:", "### User", "### Human" }
         };
+        
+        // Strings to filter out from output
+        var unwantedStrings = new[] { "###", "User:", "Human:", "Assistant:", "### ", "\n### " };
         
         var stopwatch = Stopwatch.StartNew();
         int tokenCount = 0;
         var startMemory = GC.GetTotalMemory(false);
+        var buffer = new StringBuilder();
         
         await foreach (var token in _executor.InferAsync(prompt, inferenceParams, cancellationToken))
         {
             tokenCount++;
-            TokenGenerated?.Invoke(this, token);
+            
+            // Filter out unwanted strings
+            var cleanToken = token;
+            foreach (var unwanted in unwantedStrings)
+            {
+                cleanToken = cleanToken.Replace(unwanted, "");
+            }
+            
+            // Only yield non-empty tokens
+            if (!string.IsNullOrEmpty(cleanToken))
+            {
+                TokenGenerated?.Invoke(this, cleanToken);
+                yield return cleanToken;
+            }
             
             // Update stats periodically
             if (tokenCount % 10 == 0)
             {
                 UpdateStats(stopwatch.Elapsed, tokenCount, startMemory);
             }
-            
-            yield return token;
         }
         
         stopwatch.Stop();

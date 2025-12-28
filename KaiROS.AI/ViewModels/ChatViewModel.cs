@@ -12,10 +12,17 @@ public partial class ChatViewModel : ViewModelBase
 {
     private readonly IChatService _chatService;
     private readonly IModelManagerService _modelManager;
+    private readonly ISessionService _sessionService;
     private CancellationTokenSource? _currentInferenceCts;
     
     [ObservableProperty]
     private ObservableCollection<ChatMessageViewModel> _messages = new();
+    
+    [ObservableProperty]
+    private ObservableCollection<ChatSession> _sessions = new();
+    
+    [ObservableProperty]
+    private ChatSession? _currentSession;
     
     [ObservableProperty]
     private string _userInput = string.Empty;
@@ -47,14 +54,34 @@ public partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private string _activeModelInfo = "No model loaded";
     
-    public ChatViewModel(IChatService chatService, IModelManagerService modelManager)
+    [ObservableProperty]
+    private bool _isSessionListVisible = true;
+    
+    public ChatViewModel(IChatService chatService, IModelManagerService modelManager, ISessionService sessionService)
     {
         _chatService = chatService;
         _modelManager = modelManager;
+        _sessionService = sessionService;
         
         _chatService.StatsUpdated += OnStatsUpdated;
         _modelManager.ModelLoaded += OnModelLoaded;
         _modelManager.ModelUnloaded += OnModelUnloaded;
+    }
+    
+    public override async Task InitializeAsync()
+    {
+        await _sessionService.InitializeAsync();
+        await LoadSessionsAsync();
+    }
+    
+    private async Task LoadSessionsAsync()
+    {
+        var sessions = await _sessionService.GetAllSessionsAsync();
+        Sessions.Clear();
+        foreach (var session in sessions)
+        {
+            Sessions.Add(session);
+        }
     }
     
     private void OnModelLoaded(object? sender, LLMModelInfo model)
@@ -92,9 +119,27 @@ public partial class ChatViewModel : ViewModelBase
             return;
         }
         
+        // Create or get current session
+        if (CurrentSession == null)
+        {
+            var modelName = _modelManager.ActiveModel?.DisplayName;
+            CurrentSession = await _sessionService.CreateSessionAsync(modelName, SystemPrompt);
+            Sessions.Insert(0, CurrentSession);
+        }
+        
         // Add user message
         var userMessage = ChatMessage.User(UserInput);
         Messages.Add(new ChatMessageViewModel(userMessage));
+        await _sessionService.AddMessageAsync(CurrentSession.Id, userMessage);
+        CurrentSession.MessageCount++;
+        
+        // Update session title from first message (when it's the first user message)
+        if (CurrentSession.MessageCount == 1)
+        {
+            CurrentSession.Title = ChatSession.GenerateTitle(UserInput);
+            await _sessionService.UpdateSessionAsync(CurrentSession);
+        }
+        
         UserInput = string.Empty;
         
         // Prepare messages for inference
@@ -131,10 +176,19 @@ public partial class ChatViewModel : ViewModelBase
         }
         finally
         {
+            // Clean up the final message content (remove ### and other artifacts)
+            assistantVm.CleanupContent();
             assistantVm.Message.IsStreaming = false;
             assistantVm.IsStreaming = false;
             IsGenerating = false;
             _currentInferenceCts = null;
+            
+            // Save assistant message to database
+            if (CurrentSession != null && !string.IsNullOrEmpty(assistantVm.Content))
+            {
+                await _sessionService.AddMessageAsync(CurrentSession.Id, assistantVm.Message);
+                CurrentSession.MessageCount++;
+            }
         }
     }
     
@@ -149,10 +203,77 @@ public partial class ChatViewModel : ViewModelBase
     {
         Messages.Clear();
         _chatService.ClearContext();
+        CurrentSession = null;
         TokensPerSecond = 0;
         TotalTokens = 0;
         MemoryUsage = "N/A";
         ElapsedTime = "0s";
+    }
+    
+    [RelayCommand]
+    private async Task NewSession()
+    {
+        // Save current session if exists
+        CurrentSession = null;
+        Messages.Clear();
+        _chatService.ClearContext();
+        TokensPerSecond = 0;
+        TotalTokens = 0;
+        MemoryUsage = "N/A";
+        ElapsedTime = "0s";
+    }
+    
+    [RelayCommand]
+    private async Task LoadSession(ChatSession session)
+    {
+        if (session == null) return;
+        
+        // Load session and its messages
+        CurrentSession = await _sessionService.GetSessionAsync(session.Id);
+        if (CurrentSession == null) return;
+        
+        // Clear current messages and load from session
+        Messages.Clear();
+        _chatService.ClearContext();
+        
+        foreach (var msg in CurrentSession.Messages)
+        {
+            Messages.Add(new ChatMessageViewModel(msg));
+        }
+        
+        // Restore system prompt if saved
+        if (!string.IsNullOrEmpty(CurrentSession.SystemPrompt))
+        {
+            SystemPrompt = CurrentSession.SystemPrompt;
+        }
+        
+        TokensPerSecond = 0;
+        TotalTokens = 0;
+        MemoryUsage = "N/A";
+        ElapsedTime = "0s";
+    }
+    
+    [RelayCommand]
+    private async Task DeleteSession(ChatSession session)
+    {
+        if (session == null) return;
+        
+        await _sessionService.DeleteSessionAsync(session.Id);
+        Sessions.Remove(session);
+        
+        // If deleting current session, clear it
+        if (CurrentSession?.Id == session.Id)
+        {
+            CurrentSession = null;
+            Messages.Clear();
+            _chatService.ClearContext();
+        }
+    }
+    
+    [RelayCommand]
+    private void ToggleSessionList()
+    {
+        IsSessionListVisible = !IsSessionListVisible;
     }
     
     [RelayCommand]
@@ -225,6 +346,21 @@ public partial class ChatMessageViewModel : ObservableObject
     public void AppendContent(string text)
     {
         Content += text;
+        Message.Content = Content;
+    }
+    
+    public void CleanupContent()
+    {
+        // Remove unwanted tokens from the final content
+        var unwantedPatterns = new[] { "###", "\n###", "User:", "\nUser:", "Human:", "\nHuman:", "<|im_end|>", "<|assistant|>" };
+        var cleaned = Content;
+        foreach (var pattern in unwantedPatterns)
+        {
+            cleaned = cleaned.Replace(pattern, "");
+        }
+        // Trim whitespace
+        cleaned = cleaned.Trim();
+        Content = cleaned;
         Message.Content = Content;
     }
 }
