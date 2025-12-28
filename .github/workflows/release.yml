@@ -1,0 +1,102 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  PROJECT_PATH: 'KaiROS.AI/KaiROS.AI.csproj'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Get version from tag or input
+      id: version
+      shell: pwsh
+      run: |
+        if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          $version = "${{ github.event.inputs.version }}"
+        } else {
+          $version = "${{ github.ref_name }}".TrimStart('v')
+        }
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        echo "Version: $version"
+
+    - name: Update version in project
+      shell: pwsh
+      run: |
+        $version = "${{ steps.version.outputs.VERSION }}"
+        $csproj = Get-Content ${{ env.PROJECT_PATH }}
+        $csproj = $csproj -replace '<Version>.*</Version>', "<Version>$version</Version>"
+        $csproj = $csproj -replace '<AssemblyVersion>.*</AssemblyVersion>', "<AssemblyVersion>$version.0</AssemblyVersion>"
+        $csproj = $csproj -replace '<FileVersion>.*</FileVersion>', "<FileVersion>$version.0</FileVersion>"
+        $csproj | Set-Content ${{ env.PROJECT_PATH }}
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build
+      run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore
+
+    - name: Publish self-contained app
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} -c Release -r win-x64 --self-contained true -o ./publish
+
+    - name: Install Inno Setup
+      shell: pwsh
+      run: |
+        choco install innosetup -y
+        echo "C:\Program Files (x86)\Inno Setup 6" >> $env:GITHUB_PATH
+
+    - name: Update installer version
+      shell: pwsh
+      run: |
+        $version = "${{ steps.version.outputs.VERSION }}"
+        $issFile = "installer/kairos-setup.iss"
+        $content = Get-Content $issFile
+        $content = $content -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$version`""
+        $content | Set-Content $issFile
+
+    - name: Create artifacts directory
+      run: mkdir -p artifacts
+
+    - name: Build installer
+      shell: cmd
+      run: |
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\kairos-setup.iss
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: KaiROS-AI-${{ steps.version.outputs.VERSION }}
+        path: artifacts/*.exe
+        retention-days: 30
+
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: artifacts/*.exe
+        generate_release_notes: true
+        draft: false
+        prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
