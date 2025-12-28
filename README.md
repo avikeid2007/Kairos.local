@@ -10,11 +10,26 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/avikeid2007/Kairos.local/releases/latest"><img src="https://img.shields.io/github/v/release/avikeid2007/Kairos.local?style=flat-square&logo=github&label=Download" alt="Download"/></a>
   <img src="https://img.shields.io/badge/.NET-9.0-512BD4?style=flat-square&logo=dotnet" alt=".NET 9"/>
   <img src="https://img.shields.io/badge/WPF-Desktop-0078D4?style=flat-square&logo=windows" alt="WPF"/>
   <img src="https://img.shields.io/badge/CUDA-12-76B900?style=flat-square&logo=nvidia" alt="CUDA 12"/>
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License"/>
 </p>
+
+---
+
+## 📥 Download
+
+<p align="center">
+  <a href="https://github.com/avikeid2007/Kairos.local/releases/latest">
+    <img src="https://img.shields.io/badge/Download_Installer-EXE-blue?style=for-the-badge&logo=windows" alt="Download Installer"/>
+  </a>
+</p>
+
+- **[Download Latest Release](https://github.com/avikeid2007/Kairos.local/releases/latest)** - Self-contained Windows installer
+- No .NET installation required
+- Supports Windows 10/11 (x64)
 
 ---
 
