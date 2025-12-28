@@ -57,6 +57,12 @@ public partial class MainViewModel : ViewModelBase
             ActiveModelName = null;
             StatusText = "Model unloaded";
         };
+        
+        // Auto-navigate to Chat when model is loaded
+        CatalogViewModel.ModelActivated += (s, e) =>
+        {
+            SelectedNavigationIndex = 1; // Navigate to Chat
+        };
     }
     
     public override async Task InitializeAsync()
