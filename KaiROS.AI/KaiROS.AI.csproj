@@ -10,6 +10,18 @@
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>KaiROS.AI</AssemblyName>
     <RootNamespace>KaiROS.AI</RootNamespace>
+    
+    <!-- Allow duplicate native libs from multiple LLamaSharp backends -->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    
+    <!-- Version and Assembly Info -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Product>KaiROS AI</Product>
+    <Company>KaiROS</Company>
+    <Copyright>Copyright © 2024 KaiROS</Copyright>
+    <Description>Local AI Assistant powered by LLamaSharp - Run LLMs privately on your own hardware</Description>
   </PropertyGroup>
 
   <ItemGroup>
