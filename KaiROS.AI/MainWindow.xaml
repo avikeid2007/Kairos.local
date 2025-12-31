@@ -21,6 +21,9 @@
         <DataTemplate DataType="{x:Type vm:ChatViewModel}">
             <views:ChatView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DocumentViewModel}">
+            <views:DocumentView/>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <views:SettingsView/>
         </DataTemplate>
@@ -82,6 +85,12 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="💬" FontSize="18" Margin="0,0,12,0"/>
                             <TextBlock Text="Chat" FontSize="14"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Style="{StaticResource ModernListBoxItem}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📄" FontSize="18" Margin="0,0,12,0"/>
+                            <TextBlock Text="Documents" FontSize="14"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource ModernListBoxItem}">

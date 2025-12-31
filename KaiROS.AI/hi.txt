@@ -1,0 +1,17 @@
+﻿=== hi ===
+Model: TinyLlama 1.1B Chat
+Created: 2025-12-31 13:42
+Messages: 2
+==================================================
+
+[USER] (13:42:39)
+hi
+
+------------------------------
+
+[ASSISTANT] (13:42:39)
+Thank you for your message. Can you please tell me more about the types of art that are created using the NFT marketplace?
+
+------------------------------
+
+Exported from KaiROS AI on 2025-12-31 13:52

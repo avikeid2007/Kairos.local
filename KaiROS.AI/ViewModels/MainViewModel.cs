@@ -32,19 +32,22 @@ public partial class MainViewModel : ViewModelBase
     public ModelCatalogViewModel CatalogViewModel { get; }
     public ChatViewModel ChatViewModel { get; }
     public SettingsViewModel SettingsViewModel { get; }
+    public DocumentViewModel DocumentViewModel { get; }
     
     public MainViewModel(
         IModelManagerService modelManager,
         IHardwareDetectionService hardwareService,
         ModelCatalogViewModel catalogViewModel,
         ChatViewModel chatViewModel,
-        SettingsViewModel settingsViewModel)
+        SettingsViewModel settingsViewModel,
+        DocumentViewModel documentViewModel)
     {
         _modelManager = modelManager;
         _hardwareService = hardwareService;
         CatalogViewModel = catalogViewModel;
         ChatViewModel = chatViewModel;
         SettingsViewModel = settingsViewModel;
+        DocumentViewModel = documentViewModel;
         
         _modelManager.ModelLoaded += (s, m) =>
         {
@@ -83,6 +86,7 @@ public partial class MainViewModel : ViewModelBase
             await CatalogViewModel.InitializeAsync();
             await ChatViewModel.InitializeAsync();
             await SettingsViewModel.InitializeAsync();
+            await DocumentViewModel.InitializeAsync();
             
             CurrentView = CatalogViewModel;
             StatusText = "Ready";
@@ -104,7 +108,8 @@ public partial class MainViewModel : ViewModelBase
         {
             0 => CatalogViewModel,
             1 => ChatViewModel,
-            2 => SettingsViewModel,
+            2 => DocumentViewModel,
+            3 => SettingsViewModel,
             _ => CatalogViewModel
         };
     }
@@ -116,5 +121,8 @@ public partial class MainViewModel : ViewModelBase
     private void NavigateToChat() => SelectedNavigationIndex = 1;
     
     [RelayCommand]
-    private void NavigateToSettings() => SelectedNavigationIndex = 2;
+    private void NavigateToDocuments() => SelectedNavigationIndex = 2;
+    
+    [RelayCommand]
+    private void NavigateToSettings() => SelectedNavigationIndex = 3;
 }

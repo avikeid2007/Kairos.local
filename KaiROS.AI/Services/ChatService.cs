@@ -10,6 +10,7 @@ namespace KaiROS.AI.Services;
 public class ChatService : IChatService
 {
     private readonly ModelManagerService _modelManager;
+    private readonly IDocumentService _documentService;
     private LLamaContext? _context;
     private InteractiveExecutor? _executor;
     private InferenceStats _lastStats = new();
@@ -20,9 +21,10 @@ public class ChatService : IChatService
     public event EventHandler<string>? TokenGenerated;
     public event EventHandler<InferenceStats>? StatsUpdated;
     
-    public ChatService(ModelManagerService modelManager)
+    public ChatService(ModelManagerService modelManager, IDocumentService documentService)
     {
         _modelManager = modelManager;
+        _documentService = documentService;
         _modelManager.ModelLoaded += OnModelLoaded;
         _modelManager.ModelUnloaded += OnModelUnloaded;
     }
@@ -77,7 +79,7 @@ public class ChatService : IChatService
             yield break;
         }
         
-        var prompt = BuildPrompt(messages);
+        var prompt = BuildPrompt(messages, _documentService);
         var inferenceParams = new InferenceParams
         {
             MaxTokens = 2048,
@@ -136,16 +138,32 @@ public class ChatService : IChatService
         StatsUpdated?.Invoke(this, _lastStats);
     }
     
-    private static string BuildPrompt(IEnumerable<ChatMessage> messages)
+    private static string BuildPrompt(IEnumerable<ChatMessage> messages, IDocumentService documentService)
     {
         var sb = new StringBuilder();
+        var messageList = messages.ToList();
         
-        foreach (var msg in messages)
+        // Get user's latest message to find relevant context
+        var latestUserMessage = messageList.LastOrDefault(m => m.Role == ChatRole.User);
+        string documentContext = string.Empty;
+        
+        if (latestUserMessage != null && documentService.LoadedDocuments.Count > 0)
+        {
+            documentContext = documentService.GetContextForQuery(latestUserMessage.Content, 3);
+        }
+        
+        foreach (var msg in messageList)
         {
             switch (msg.Role)
             {
                 case ChatRole.System:
-                    sb.AppendLine($"### System:\n{msg.Content}\n");
+                    var systemContent = msg.Content;
+                    // Append document context to system prompt
+                    if (!string.IsNullOrEmpty(documentContext))
+                    {
+                        systemContent += "\n\n" + documentContext + "\n\nPlease use the document context above to help answer user questions. If the context is relevant, cite information from it. If not relevant, just answer normally.";
+                    }
+                    sb.AppendLine($"### System:\n{systemContent}\n");
                     break;
                 case ChatRole.User:
                     sb.AppendLine($"### User:\n{msg.Content}\n");
@@ -154,6 +172,13 @@ public class ChatService : IChatService
                     sb.AppendLine($"### Assistant:\n{msg.Content}\n");
                     break;
             }
+        }
+        
+        // If there's document context but no system message, add one
+        if (!string.IsNullOrEmpty(documentContext) && !messageList.Any(m => m.Role == ChatRole.System))
+        {
+            var contextPrompt = documentContext + "\n\nPlease use the document context above to help answer user questions. If the context is relevant, cite information from it.";
+            sb.Insert(0, $"### System:\n{contextPrompt}\n\n");
         }
         
         sb.AppendLine("### Assistant:");

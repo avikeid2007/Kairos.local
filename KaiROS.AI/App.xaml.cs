@@ -45,6 +45,8 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IDownloadService>(sp => new DownloadService(modelsDir));
         services.AddSingleton<IHardwareDetectionService, HardwareDetectionService>();
         services.AddSingleton<ISessionService, SessionService>();
+        services.AddSingleton<IExportService, ExportService>();
+        services.AddSingleton<IDocumentService, DocumentService>();
         services.AddSingleton<ModelManagerService>();
         services.AddSingleton<IModelManagerService>(sp => sp.GetRequiredService<ModelManagerService>());
         services.AddSingleton<ChatService>();
@@ -55,6 +57,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<ModelCatalogViewModel>();
         services.AddSingleton<ChatViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<DocumentViewModel>();
         
         // Views
         services.AddSingleton<MainWindow>();
