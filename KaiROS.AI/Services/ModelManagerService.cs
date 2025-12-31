@@ -29,9 +29,9 @@ public class ModelManagerService : IModelManagerService
         _configuration = configuration;
         _downloadService = downloadService;
         
-        // Get models directory from config or use default
-        var appSettings = _configuration.GetSection("AppSettings").Get<AppSettings>() ?? new AppSettings();
-        _modelsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, appSettings.ModelsDirectory);
+        // Use LocalAppData for MSIX compatibility (installation folder is read-only)
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        _modelsDirectory = Path.Combine(localAppData, "KaiROS.AI", "Models");
         Directory.CreateDirectory(_modelsDirectory);
     }
     

@@ -36,9 +36,10 @@ public partial class App : System.Windows.Application
         // Configuration
         services.AddSingleton<IConfiguration>(configuration);
         
-        // Get app settings
+        // Get app settings - Use LocalAppData for MSIX compatibility (installation folder is read-only)
         var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>() ?? new AppSettings();
-        var modelsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, appSettings.ModelsDirectory);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var modelsDir = Path.Combine(localAppData, "KaiROS.AI", "Models");
         
         // Services
         services.AddSingleton<IDownloadService>(sp => new DownloadService(modelsDir));
