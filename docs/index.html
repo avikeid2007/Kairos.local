@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaiROS AI - Local AI Assistant for Windows</title>
+    <meta name="description"
+        content="Run powerful AI models locally on your Windows PC. No cloud, no subscription, complete privacy. GPU accelerated with CUDA support.">
+    <meta name="keywords" content="AI, LLM, Local AI, Windows, Privacy, GPU, CUDA, ChatGPT alternative">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Hero Section -->
+    <header class="hero">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <img src="assets/logo.png" alt="KaiROS AI" class="nav-logo">
+                <span>KaiROS AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#models">Models</a>
+                <a href="#download">Download</a>
+                <a href="https://github.com/avikeid2007/Kairos.local" class="btn-github">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path
+                            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </nav>
+
+        <div class="hero-content">
+            <div class="hero-badge">🚀 Now available on Microsoft Store</div>
+            <h1>Your Personal AI,<br><span class="gradient-text">Running Locally</span></h1>
+            <p class="hero-subtitle">
+                Run powerful AI models on your Windows PC. No cloud, no subscription,
+                no data leaving your computer. Complete privacy with GPU acceleration.
+            </p>
+            <div class="hero-buttons">
+                <a href="#download" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                    </svg>
+                    Download Free
+                </a>
+                <a href="https://github.com/avikeid2007/Kairos.local" class="btn btn-secondary">
+                    View on GitHub
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value">100%</span>
+                    <span class="stat-label">Private</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">7+</span>
+                    <span class="stat-label">AI Models</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">GPU</span>
+                    <span class="stat-label">Accelerated</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="screenshot-gallery">
+            <div class="gallery-tabs">
+                <button class="tab active" data-tab="model">📦 Models</button>
+                <button class="tab" data-tab="chat">💬 Chat</button>
+                <button class="tab" data-tab="setting">⚙️ Settings</button>
+            </div>
+            <div class="gallery-images">
+                <img src="assets/model.png" alt="Model Catalog" class="gallery-img active" id="img-model">
+                <img src="assets/chat.png" alt="Chat Interface" class="gallery-img" id="img-chat">
+                <img src="assets/setting.png" alt="Settings" class="gallery-img" id="img-setting">
+            </div>
+        </div>
+    </header>
+
+    <script>
+        document.querySelectorAll('.gallery-tabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.gallery-img').forEach(img => img.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('img-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+    </script>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">Why KaiROS AI?</h2>
+            <p class="section-subtitle">Everything you need for local AI, nothing you don't.</p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>100% Private</h3>
+                    <p>Your conversations never leave your computer. No cloud, no tracking, no data collection.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>GPU Accelerated</h3>
+                    <p>CUDA 12 support for NVIDIA GPUs. Get blazing fast responses with hardware acceleration.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>Model Catalog</h3>
+                    <p>Pre-configured models from Hugging Face. Download with one click, no setup required.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Chat History</h3>
+                    <p>Save and restore your conversations. Pick up where you left off anytime.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Works Offline</h3>
+                    <p>No internet required after downloading models. Use AI anywhere, anytime.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Beautiful UI</h3>
+                    <p>Modern dark theme with smooth animations. A pleasure to use every day.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Models Section -->
+    <section id="models" class="models">
+        <div class="container">
+            <h2 class="section-title">Choose Your Model</h2>
+            <p class="section-subtitle">From lightweight to powerful - pick what works for you.</p>
+
+            <div class="models-grid">
+                <div class="model-card">
+                    <div class="model-header">
+                        <h3>TinyLlama 1.1B</h3>
+                        <span class="model-size">0.8 GB</span>
+                    </div>
+                    <p>Perfect for quick responses and testing. Runs on any hardware.</p>
+                    <div class="model-specs">
+                        <span>RAM: 2 GB</span>
+                        <span>Speed: Fast</span>
+                    </div>
+                </div>
+                <div class="model-card featured">
+                    <div class="model-badge">⭐ Recommended</div>
+                    <div class="model-header">
+                        <h3>Phi-3 Mini 3.8B</h3>
+                        <span class="model-size">2.2 GB</span>
+                    </div>
+                    <p>Best balance of quality and speed. Great for everyday tasks.</p>
+                    <div class="model-specs">
+                        <span>RAM: 4 GB</span>
+                        <span>Speed: Medium</span>
+                    </div>
+                </div>
+                <div class="model-card featured">
+                    <div class="model-badge">⭐ Recommended</div>
+                    <div class="model-header">
+                        <h3>Mistral 7B</h3>
+                        <span class="model-size">4.4 GB</span>
+                    </div>
+                    <p>Excellent for complex tasks and creative writing.</p>
+                    <div class="model-specs">
+                        <span>RAM: 8 GB</span>
+                        <span>Speed: Medium</span>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-header">
+                        <h3>LLaMA 3.1 8B</h3>
+                        <span class="model-size">4.9 GB</span>
+                    </div>
+                    <p>Advanced reasoning and analysis. Premium quality responses.</p>
+                    <div class="model-specs">
+                        <span>RAM: 12 GB</span>
+                        <span>Speed: Slower</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download">
+        <div class="container">
+            <h2 class="section-title">Get Started Free</h2>
+            <p class="section-subtitle">Download KaiROS AI and start chatting with AI privately.</p>
+
+            <div class="download-options">
+                <a href="https://github.com/avikeid2007/Kairos.local/releases/latest" class="download-card">
+                    <div class="download-icon">📦</div>
+                    <h3>Windows Installer</h3>
+                    <p>Self-contained EXE installer. No .NET required.</p>
+                    <span class="download-btn">Download .exe</span>
+                </a>
+                <a href="https://apps.microsoft.com/store/detail/kairos-ai/XXXXXXXXXX" class="download-card">
+                    <div class="download-icon">🏪</div>
+                    <h3>Microsoft Store</h3>
+                    <p>Auto-updates and easy install from the Store.</p>
+                    <span class="download-btn">Get from Store</span>
+                </a>
+                <a href="https://github.com/avikeid2007/Kairos.local" class="download-card">
+                    <div class="download-icon">💻</div>
+                    <h3>Build from Source</h3>
+                    <p>Clone the repo and build it yourself.</p>
+                    <span class="download-btn">View Source</span>
+                </a>
+            </div>
+
+            <div class="system-requirements">
+                <h4>System Requirements</h4>
+                <ul>
+                    <li>Windows 10/11 (64-bit)</li>
+                    <li>4 GB RAM minimum (8 GB+ recommended)</li>
+                    <li>NVIDIA GPU optional (for acceleration)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="assets/logo.png" alt="KaiROS AI" class="footer-logo">
+                    <p>Local AI for everyone.<br>Private, powerful, free.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Links</h4>
+                    <a href="https://github.com/avikeid2007/Kairos.local">GitHub</a>
+                    <a href="https://github.com/avikeid2007/Kairos.local/releases">Releases</a>
+                    <a href="https://github.com/avikeid2007/Kairos.local/issues">Report Issue</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <a href="https://github.com/avikeid2007/Kairos.local/blob/main/LICENSE">MIT License</a>
+                    <a href="https://github.com/avikeid2007/Kairos.local/blob/main/PRIVACY_POLICY.md">Privacy Policy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Made with ❤️ by <a href="https://github.com/avikeid2007">Avnish Kumar</a></p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
