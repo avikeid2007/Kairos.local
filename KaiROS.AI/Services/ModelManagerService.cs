@@ -104,6 +104,8 @@ public class ModelManagerService : IModelManagerService
                 else
                 {
                     model.DownloadState = DownloadState.Failed;
+                    model.LoadError = "File verification failed. The download may be corrupted - please try again.";
+                    System.Diagnostics.Debug.WriteLine($"Verification failed for {model.Name} at {localPath}");
                     return false;
                 }
             }
@@ -113,9 +115,10 @@ public class ModelManagerService : IModelManagerService
                 return false;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             model.DownloadState = DownloadState.Failed;
+            model.LoadError = ex.Message;
             throw;
         }
     }
@@ -167,6 +170,12 @@ public class ModelManagerService : IModelManagerService
         if (!model.IsDownloaded || model.LocalPath == null)
             return false;
         
+        if (!File.Exists(model.LocalPath))
+        {
+            model.IsDownloaded = false;
+            return false;
+        }
+        
         // Unload current model if any
         await UnloadModelAsync();
         
@@ -188,8 +197,11 @@ public class ModelManagerService : IModelManagerService
             ModelLoaded?.Invoke(this, model);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error loading model: {ex.Message}");
+            // Store error for UI to display
+            model.LoadError = ex.Message;
             return false;
         }
     }

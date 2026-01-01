@@ -14,7 +14,10 @@ public class DownloadService : IDownloadService
     public DownloadService(string modelsDirectory)
     {
         _modelsDirectory = modelsDirectory;
-        _httpClient = new HttpClient();
+        _httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromMinutes(30) // Allow long downloads but prevent infinite hanging
+        };
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "KaiROS-AI/1.0");
         
         Directory.CreateDirectory(_modelsDirectory);
@@ -128,35 +131,58 @@ public class DownloadService : IDownloadService
     
     public async Task<bool> VerifyFileIntegrityAsync(string filePath, long expectedSize)
     {
+        System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: Checking {filePath}");
+        
         if (!File.Exists(filePath))
+        {
+            System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: File does not exist!");
             return false;
+        }
         
         var fileInfo = new FileInfo(filePath);
+        System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: File size = {fileInfo.Length} bytes, expected = {expectedSize} bytes");
         
-        // File must have some content
-        if (fileInfo.Length < 1000)
+        // File must have some content (at least 1MB for GGUF files)
+        if (fileInfo.Length < 1_000_000)
+        {
+            System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: File too small ({fileInfo.Length} bytes)");
             return false;
+        }
         
-        // Skip strict size check - HuggingFace sizes may vary
-        // Just verify file is readable
+        // Just verify file is readable - don't check exact size as HuggingFace may vary
         try
         {
-            await using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            await using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var buffer = new byte[4096];
-            // Read first and last chunks to verify file integrity
-            var bytesRead = await fs.ReadAsync(buffer.AsMemory(0, Math.Min(4096, (int)fs.Length)));
-            if (bytesRead == 0) return false;
             
-            if (fs.Length > 4096)
+            // Read first chunk to verify file integrity
+            // Use proper buffer size calculation to avoid int overflow for large files
+            int bytesToRead = fileInfo.Length > 4096 ? 4096 : (int)fileInfo.Length;
+            var bytesRead = await fs.ReadAsync(buffer.AsMemory(0, bytesToRead));
+            if (bytesRead == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: Could not read file start");
+                return false;
+            }
+            
+            // Read last chunk for large files
+            if (fileInfo.Length > 4096)
             {
                 fs.Seek(-4096, SeekOrigin.End);
                 bytesRead = await fs.ReadAsync(buffer.AsMemory(0, 4096));
-                if (bytesRead == 0) return false;
+                if (bytesRead == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: Could not read file end");
+                    return false;
+                }
             }
+            
+            System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: SUCCESS - file is valid");
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: Exception - {ex.Message}");
             return false;
         }
     }

@@ -87,7 +87,12 @@ public class ChatService : IChatService
         };
         
         // Strings to filter out from output
-        var unwantedStrings = new[] { "###", "User:", "Human:", "Assistant:", "### ", "\n### " };
+        var unwantedStrings = new[] { 
+            "###", "User:", "Human:", "Assistant:", "### ", "\n### ",
+            "## OUTPUT:", "##OUTPUT:", "## OUTPUT", "##OUTPUT",
+            "**OUTPUT:**", "**OUTPUT**", "OUTPUT:", 
+            "## Response:", "##Response:", "<|assistant|>", "<|end|>"
+        };
         
         var stopwatch = Stopwatch.StartNew();
         int tokenCount = 0;

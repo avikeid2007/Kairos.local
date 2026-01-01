@@ -22,6 +22,7 @@ public class LLMModelInfo
     public double DownloadProgress { get; set; }
     public DownloadState DownloadState { get; set; } = DownloadState.NotStarted;
     public bool IsActive { get; set; }
+    public string? LoadError { get; set; }
 }
 
 public enum DownloadState

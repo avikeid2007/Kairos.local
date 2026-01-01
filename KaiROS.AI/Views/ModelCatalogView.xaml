@@ -236,26 +236,68 @@
                                             Visibility="{Binding IsPaused, Converter={StaticResource BoolToVis}}"/>
                                     
                                     <!-- Load/Active Buttons for Downloaded Models -->
-                                    <StackPanel Orientation="Horizontal">
-                                        <StackPanel.Style>
-                                            <Style TargetType="StackPanel">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding IsDownloaded}" Value="True"/>
-                                                            <Condition Binding="{Binding IsDownloading}" Value="False"/>
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </MultiDataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </StackPanel.Style>
+                                    <StackPanel Orientation="Horizontal"
+                                                Visibility="{Binding ShowLoadButton, Converter={StaticResource BoolToVis}}">
+                                        <!-- Load Model Button with Loading State -->
                                         <Button Command="{Binding SetActiveCommand}"
                                                 Style="{StaticResource PrimaryButton}"
-                                                Content="Load Model"
-                                                IsEnabled="{Binding IsActive, Converter={StaticResource InverseBool}}"
-                                                Margin="0,0,8,0"/>
+                                                Margin="0,0,8,0"
+                                                IsEnabled="{Binding IsActive, Converter={StaticResource InverseBool}}">
+                                            <Button.Content>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <!-- Loading Spinner (visible when loading) -->
+                                                    <Border x:Name="LoadingSpinner" 
+                                                            Width="16" Height="16" 
+                                                            Margin="0,0,8,0"
+                                                            RenderTransformOrigin="0.5,0.5"
+                                                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+                                                        <Border.RenderTransform>
+                                                            <RotateTransform x:Name="SpinnerRotation"/>
+                                                        </Border.RenderTransform>
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                        <DataTrigger.EnterActions>
+                                                                            <BeginStoryboard>
+                                                                                <Storyboard RepeatBehavior="Forever">
+                                                                                    <DoubleAnimation 
+                                                                                        Storyboard.TargetProperty="(Border.RenderTransform).(RotateTransform.Angle)"
+                                                                                        From="0" To="360" Duration="0:0:1"/>
+                                                                                </Storyboard>
+                                                                            </BeginStoryboard>
+                                                                        </DataTrigger.EnterActions>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <Ellipse Width="14" Height="14" 
+                                                                 StrokeThickness="2"
+                                                                 Stroke="{StaticResource TextPrimaryBrush}">
+                                                            <Ellipse.StrokeDashArray>
+                                                                <DoubleCollection>3,3</DoubleCollection>
+                                                            </Ellipse.StrokeDashArray>
+                                                        </Ellipse>
+                                                    </Border>
+                                                    <!-- Text changes based on loading state -->
+                                                    <TextBlock>
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="Load Model"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                        <Setter Property="Text" Value="Loading..."/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                        <Setter Property="Text" Value="Active ✓"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Button.Content>
+                                        </Button>
                                         
                                         <Button Command="{Binding DeleteCommand}"
                                                 Style="{StaticResource IconButton}"
@@ -264,7 +306,7 @@
                                     </StackPanel>
                                     
                                     <!-- Loading Indicator -->
-                                    <TextBlock Text="Loading..." 
+                                    <TextBlock Text="{Binding LoadingText}" 
                                                Foreground="{StaticResource TextSecondaryBrush}"
                                                VerticalAlignment="Center"
                                                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>

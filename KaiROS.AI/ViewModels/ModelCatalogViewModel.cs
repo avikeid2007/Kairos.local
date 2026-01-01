@@ -120,14 +120,23 @@ public partial class ModelCatalogViewModel : ViewModelBase
             var success = await _modelManager.DownloadModelAsync(model, progress, cts.Token);
             
             // Update final state on UI thread
+            // IMPORTANT: Set IsDownloaded BEFORE IsDownloading=false to ensure UI triggers work
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                modelVm.IsDownloading = false;
-                // Set IsDownloaded based on the return value, not the model property
-                modelVm.IsDownloaded = success;
                 if (success)
                 {
                     modelVm.DownloadProgress = 100;
+                    modelVm.ErrorMessage = null;
+                    // Set IsDownloaded first, then clear downloading flag
+                    modelVm.IsDownloaded = true;
+                    modelVm.IsDownloading = false;
+                }
+                else
+                {
+                    modelVm.IsDownloading = false;
+                    modelVm.IsDownloaded = false;
+                    // Show error if verification failed
+                    modelVm.ErrorMessage = model.LoadError ?? "Download failed. Please try again.";
                 }
             });
         }
@@ -173,6 +182,7 @@ public partial class ModelCatalogViewModel : ViewModelBase
     public async Task SetActiveModelAsync(ModelItemViewModel modelVm)
     {
         modelVm.IsLoading = true;
+        modelVm.ErrorMessage = null; // Clear previous error
         
         try
         {
@@ -191,8 +201,16 @@ public partial class ModelCatalogViewModel : ViewModelBase
             }
             else
             {
-                modelVm.ErrorMessage = "Failed to load model";
+                // Show specific error if available
+                var error = modelVm.Model.LoadError;
+                modelVm.ErrorMessage = !string.IsNullOrEmpty(error) 
+                    ? $"Failed to load: {error}" 
+                    : "Failed to load model. The file may be corrupted - try deleting and re-downloading.";
             }
+        }
+        catch (Exception ex)
+        {
+            modelVm.ErrorMessage = $"Error: {ex.Message}";
         }
         finally
         {
@@ -225,9 +243,11 @@ public partial class ModelItemViewModel : ObservableObject
     public LLMModelInfo Model { get; }
     
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowLoadButton))]
     private bool _isDownloaded;
     
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowLoadButton))]
     private bool _isDownloading;
     
     [ObservableProperty]
@@ -237,6 +257,7 @@ public partial class ModelItemViewModel : ObservableObject
     private bool _isActive;
     
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LoadingText))]
     private bool _isLoading;
     
     [ObservableProperty]
@@ -244,6 +265,20 @@ public partial class ModelItemViewModel : ObservableObject
     
     [ObservableProperty]
     private string? _errorMessage;
+    
+    // Computed property that triggers UI update
+    public bool ShowLoadButton => IsDownloaded && !IsDownloading;
+    
+    // Loading text that shows backend type
+    public string LoadingText
+    {
+        get
+        {
+            // Check if NVIDIA GPU is available (simple check via LLamaSharp)
+            bool hasGpu = LLama.Native.NativeApi.llama_max_devices() > 0;
+            return IsLoading ? (hasGpu ? "Loading on GPU..." : "Loading on CPU...") : "";
+        }
+    }
     
     public ModelItemViewModel(LLMModelInfo model, ModelCatalogViewModel parent)
     {
