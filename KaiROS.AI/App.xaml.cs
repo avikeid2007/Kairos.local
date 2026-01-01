@@ -29,6 +29,11 @@ public partial class App : System.Windows.Application
         ConfigureServices(services, configuration);
         _serviceProvider = services.BuildServiceProvider();
         
+        // Start API Server
+        var apiService = _serviceProvider.GetRequiredService<ApiService>();
+        // Fire and forget - runs in background
+        _ = apiService.StartAsync();
+
         // Create and show main window
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
         mainWindow.Show();
@@ -97,6 +102,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IModelManagerService>(sp => sp.GetRequiredService<ModelManagerService>());
         services.AddSingleton<ChatService>();
         services.AddSingleton<IChatService>(sp => sp.GetRequiredService<ChatService>());
+        services.AddSingleton<ApiService>();
         
         // ViewModels
         services.AddSingleton<MainViewModel>();
@@ -111,7 +117,17 @@ public partial class App : System.Windows.Application
     
     protected override void OnExit(System.Windows.ExitEventArgs e)
     {
-        _serviceProvider?.Dispose();
+        if (_serviceProvider != null)
+        {
+            var apiService = _serviceProvider.GetService<ApiService>();
+            if (apiService != null)
+            {
+                // We can't await here in OnExit, but StopAsync should be fast enough
+                // or we could use OnSessionEnding/etc.
+                apiService.StopAsync().Wait();
+            }
+            _serviceProvider.Dispose();
+        }
         base.OnExit(e);
     }
 }
