@@ -8,7 +8,7 @@
   <Identity
     Name="34488AvnishKumar.KaiROSAI"
     Publisher="CN=1494B4FB-4349-4083-8AFA-16D2A64B8D99"
-    Version="1.0.1.0" />
+    Version="1.0.2.0" />
 
   <Properties>
     <DisplayName>KaiROS AI</DisplayName>
