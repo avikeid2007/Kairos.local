@@ -4,13 +4,16 @@
         xmlns:views="clr-namespace:KaiROS.AI.Views"
         xmlns:vm="clr-namespace:KaiROS.AI.ViewModels"
         xmlns:converters="clr-namespace:KaiROS.AI.Converters"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         Title="KaiROS AI" 
         Height="800" 
         Width="1200"
         MinHeight="600"
         MinWidth="900"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{StaticResource BackgroundBrush}"
+        StateChanged="Window_StateChanged"
+        Closing="Window_Closing">
     
     <Window.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
@@ -35,6 +38,21 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        
+        <!-- System Tray Icon (doesn't affect layout) -->
+        <tb:TaskbarIcon x:Name="TrayIcon"
+                        ToolTipText="KaiROS AI"
+                        Visibility="Collapsed">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="🗨️ New Chat" Click="TrayMenu_NewChat"/>
+                    <MenuItem Header="⚙️ Settings" Click="TrayMenu_Settings"/>
+                    <Separator/>
+                    <MenuItem Header="🔄 Restore" Click="TrayMenu_Restore"/>
+                    <MenuItem Header="❌ Exit" Click="TrayMenu_Exit"/>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
         
         <!-- Sidebar Navigation -->
         <Border Background="{StaticResource SurfaceBrush}" 

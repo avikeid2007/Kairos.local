@@ -97,6 +97,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IModelManagerService>(sp => sp.GetRequiredService<ModelManagerService>());
         services.AddSingleton<ChatService>();
         services.AddSingleton<IChatService>(sp => sp.GetRequiredService<ChatService>());
+        services.AddSingleton<IApiService, ApiService>();
         
         // ViewModels
         services.AddSingleton<MainViewModel>();

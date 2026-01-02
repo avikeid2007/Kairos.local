@@ -60,6 +60,66 @@
                 </StackPanel>
             </Border>
             
+            <!-- API Settings -->
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="🔌 API Server" 
+                               FontSize="18" 
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Margin="0,0,0,16"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel>
+                            <TextBlock Text="Enable Local API" 
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="Expose OpenAI-compatible REST API on localhost" 
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       FontSize="12"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <CheckBox Grid.Column="1" 
+                                  IsChecked="{Binding IsApiEnabled}"
+                                  Style="{StaticResource ModernToggleSwitch}"
+                                  VerticalAlignment="Center"/>
+                    </Grid>
+                    
+                    <StackPanel Margin="0,16,0,0">
+                        <TextBlock Text="Port" 
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding ApiPort, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
+                                 Width="100"
+                                 HorizontalAlignment="Left"
+                                 Margin="0,8,0,0"/>
+                    </StackPanel>
+                    
+                    <StackPanel Margin="0,16,0,0">
+                        <TextBlock Text="Status" 
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding ApiStatus}" 
+                                   Foreground="{StaticResource AccentBrush}"
+                                   FontSize="12"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                    
+                    <TextBlock Text="Use with VS Code Continue, LM Studio clients, or curl"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="11"
+                               FontStyle="Italic"
+                               Margin="0,12,0,0"/>
+                </StackPanel>
+            </Border>
+            
             <!-- Hardware Information -->
             <Border Style="{StaticResource CardBorder}" Margin="0,0,0,16">
                 <StackPanel>
