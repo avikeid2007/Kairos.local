@@ -10,6 +10,8 @@ public class ModelManagerService : IModelManagerService
 {
     private readonly IDownloadService _downloadService;
     private readonly IConfiguration _configuration;
+    private readonly IDatabaseService _databaseService;
+    private readonly IHardwareDetectionService _hardwareService;
     private readonly List<LLMModelInfo> _models = new();
     private string _modelsDirectory;
     private LLamaWeights? _loadedWeights;
@@ -25,10 +27,12 @@ public class ModelManagerService : IModelManagerService
     public event EventHandler? ModelUnloaded;
     public event EventHandler<double>? ModelLoadProgress;
     
-    public ModelManagerService(IConfiguration configuration, IDownloadService downloadService)
+    public ModelManagerService(IConfiguration configuration, IDownloadService downloadService, IDatabaseService databaseService, IHardwareDetectionService hardwareService)
     {
         _configuration = configuration;
         _downloadService = downloadService;
+        _databaseService = databaseService;
+        _hardwareService = hardwareService;
         
         // Use LocalAppData for MSIX compatibility (installation folder is read-only)
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -38,32 +42,58 @@ public class ModelManagerService : IModelManagerService
     
     public async Task InitializeAsync()
     {
-        await Task.Run(() =>
+        // Initialize database
+        await _databaseService.InitializeAsync();
+        
+        // Load model catalog from configuration
+        var modelConfigs = _configuration.GetSection("LLMModels").Get<List<LLMModelInfo>>() ?? new();
+        
+        _models.Clear();
+        foreach (var model in modelConfigs)
         {
-            // Load model catalog from configuration
-            var modelConfigs = _configuration.GetSection("LLMModels").Get<List<LLMModelInfo>>() ?? new();
+            // Check if model is already downloaded
+            var localPath = Path.Combine(_modelsDirectory, model.Name);
+            model.LocalPath = localPath;
+            model.IsDownloaded = File.Exists(localPath);
             
-            _models.Clear();
-            foreach (var model in modelConfigs)
+            if (model.IsDownloaded)
             {
-                // Check if model is already downloaded
-                var localPath = Path.Combine(_modelsDirectory, model.Name);
-                model.LocalPath = localPath;
-                model.IsDownloaded = File.Exists(localPath);
-                
-                if (model.IsDownloaded)
-                {
-                    model.DownloadState = DownloadState.Completed;
-                    model.DownloadProgress = 100;
-                }
-                else if (_downloadService.HasPartialDownload(model.Name))
-                {
-                    model.DownloadState = DownloadState.Paused;
-                }
-                
-                _models.Add(model);
+                model.DownloadState = DownloadState.Completed;
+                model.DownloadProgress = 100;
             }
-        });
+            else if (_downloadService.HasPartialDownload(model.Name))
+            {
+                model.DownloadState = DownloadState.Paused;
+            }
+            
+            _models.Add(model);
+        }
+        
+        // Load custom models from SQLite
+        var customModels = await _databaseService.GetCustomModelsAsync();
+        foreach (var custom in customModels)
+        {
+            var model = new LLMModelInfo
+            {
+                Name = custom.Name,
+                DisplayName = custom.DisplayName,
+                Description = custom.Description,
+                DownloadUrl = custom.DownloadUrl,
+                LocalPath = custom.IsLocal ? custom.FilePath : Path.Combine(_modelsDirectory, custom.Name),
+                SizeBytes = custom.SizeBytes,
+                IsDownloaded = custom.IsLocal || File.Exists(Path.Combine(_modelsDirectory, custom.Name)),
+                IsCustomModel = true,
+                CustomModelId = custom.Id
+            };
+            
+            if (model.IsDownloaded)
+            {
+                model.DownloadState = DownloadState.Completed;
+                model.DownloadProgress = 100;
+            }
+            
+            _models.Add(model);
+        }
     }
     
     public async Task<bool> DownloadModelAsync(LLMModelInfo model, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
@@ -189,6 +219,18 @@ public class ModelManagerService : IModelManagerService
         
         try
         {
+            // Get GPU layer count based on selected backend (before Task.Run since this needs async)
+            var hardwareInfo = await _hardwareService.DetectHardwareAsync();
+            var gpuLayers = hardwareInfo.SelectedBackend switch
+            {
+                ExecutionBackend.Cpu => 0,           // CPU only - no GPU layers
+                ExecutionBackend.Cuda => 35,         // NVIDIA GPU - offload layers
+                ExecutionBackend.DirectML => 35,     // DirectX GPU - offload layers  
+                ExecutionBackend.Npu => 0,           // NPU - handled separately
+                _ => 0
+            };
+            
+            System.Diagnostics.Debug.WriteLine($"[KaiROS] Loading model with backend: {hardwareInfo.SelectedBackend}, GpuLayerCount: {gpuLayers}");
             await Task.Run(() =>
             {
                 // Report parameter setup progress
@@ -198,7 +240,7 @@ public class ModelManagerService : IModelManagerService
                 var parameters = new ModelParams(model.LocalPath)
                 {
                     ContextSize = 4096,
-                    GpuLayerCount = 35 // Will be adjusted based on hardware
+                    GpuLayerCount = gpuLayers
                 };
                 
                 progress?.Report(30);

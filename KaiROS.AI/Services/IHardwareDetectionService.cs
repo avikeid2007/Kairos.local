@@ -8,4 +8,5 @@ public interface IHardwareDetectionService
     ExecutionBackend GetRecommendedBackend();
     bool IsBackendAvailable(ExecutionBackend backend);
     void ClearCache();
+    void SetSelectedBackend(ExecutionBackend backend);
 }

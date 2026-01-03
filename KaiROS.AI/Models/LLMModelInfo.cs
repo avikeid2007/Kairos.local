@@ -23,6 +23,10 @@ public class LLMModelInfo
     public DownloadState DownloadState { get; set; } = DownloadState.NotStarted;
     public bool IsActive { get; set; }
     public string? LoadError { get; set; }
+    
+    // Custom model properties
+    public bool IsCustomModel { get; set; }
+    public int CustomModelId { get; set; }
 }
 
 public enum DownloadState

@@ -149,6 +149,14 @@ public class HardwareDetectionService : IHardwareDetectionService
         _cachedInfo = null;
     }
     
+    public void SetSelectedBackend(ExecutionBackend backend)
+    {
+        if (_cachedInfo != null)
+        {
+            _cachedInfo.SelectedBackend = backend;
+        }
+    }
+    
     private static ExecutionBackend DetermineRecommendedBackend(HardwareInfo info)
     {
         // Prefer CUDA for NVIDIA GPUs (best performance)

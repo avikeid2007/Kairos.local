@@ -165,6 +165,8 @@ public partial class SettingsViewModel : ViewModelBase
         if (Hardware != null)
         {
             Hardware.SelectedBackend = value;
+            // Also update the service's cached copy so model loading respects this selection
+            _hardwareService.SetSelectedBackend(value);
             UpdateBackendStatus();
         }
     }

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KaiROS.AI.Models;
 using KaiROS.AI.Services;
+using KaiROS.AI.Views;
 using System.Collections.ObjectModel;
 
 namespace KaiROS.AI.ViewModels;
@@ -9,9 +10,20 @@ namespace KaiROS.AI.ViewModels;
 public partial class ModelCatalogViewModel : ViewModelBase
 {
     private readonly IModelManagerService _modelManager;
+    private readonly IDatabaseService _databaseService;
+    private readonly IHardwareDetectionService _hardwareService;
     private readonly Dictionary<string, CancellationTokenSource> _downloadCts = new();
     
     public event EventHandler? ModelActivated;
+    
+    // Expose the selected backend name for child ViewModels
+    public string SelectedBackendName => _hardwareService.GetRecommendedBackend().ToString();
+    
+    public async Task<string> GetSelectedBackendNameAsync()
+    {
+        var hw = await _hardwareService.DetectHardwareAsync();
+        return hw.SelectedBackend.ToString();
+    }
     
     [ObservableProperty]
     private ObservableCollection<ModelItemViewModel> _models = new();
@@ -28,9 +40,11 @@ public partial class ModelCatalogViewModel : ViewModelBase
     [ObservableProperty]
     private string _searchText = string.Empty;
     
-    public ModelCatalogViewModel(IModelManagerService modelManager)
+    public ModelCatalogViewModel(IModelManagerService modelManager, IDatabaseService databaseService, IHardwareDetectionService hardwareService)
     {
         _modelManager = modelManager;
+        _databaseService = databaseService;
+        _hardwareService = hardwareService;
     }
     
     public override async Task InitializeAsync()
@@ -235,10 +249,42 @@ public partial class ModelCatalogViewModel : ViewModelBase
         
         if (result == System.Windows.MessageBoxResult.Yes)
         {
+            // If it's a custom model, also delete from database
+            if (modelVm.Model.IsCustomModel)
+            {
+                await _databaseService.DeleteCustomModelAsync(modelVm.Model.CustomModelId);
+                Models.Remove(modelVm);
+                FilteredModels.Remove(modelVm);
+            }
+            
             await _modelManager.DeleteModelAsync(modelVm.Model);
             modelVm.IsDownloaded = false;
             modelVm.IsActive = false;
             modelVm.DownloadProgress = 0;
+        }
+    }
+    
+    [RelayCommand]
+    private async Task AddCustomModelAsync()
+    {
+        var dialog = new AddCustomModelDialog
+        {
+            Owner = System.Windows.Application.Current.MainWindow
+        };
+        
+        if (dialog.ShowDialog() == true && dialog.Result != null)
+        {
+            // Save to database
+            await _databaseService.AddCustomModelAsync(dialog.Result);
+            
+            // Refresh the model list
+            await InitializeAsync();
+            
+            System.Windows.MessageBox.Show(
+                $"Model '{dialog.Result.DisplayName}' added successfully!",
+                "Model Added",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Information);
         }
     }
 }
@@ -283,9 +329,8 @@ public partial class ModelItemViewModel : ObservableObject
         {
             if (!IsLoading) return "";
             
-            // Check if NVIDIA GPU is available (simple check via LLamaSharp)
-            bool hasGpu = LLama.Native.NativeApi.llama_max_devices() > 0;
-            var backend = hasGpu ? "GPU" : "CPU";
+            // Get selected backend from parent (user's choice from Settings)
+            var backend = _parent.GetSelectedBackendNameAsync().GetAwaiter().GetResult();
             
             if (LoadingProgress > 0 && LoadingProgress < 100)
                 return $"Loading on {backend}... {LoadingProgress:0}%";

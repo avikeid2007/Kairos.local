@@ -250,51 +250,46 @@
                             Foreground="{StaticResource TextSecondaryBrush}"
                             Text="Available Backends:" />
 
-                        <ItemsControl ItemsSource="{Binding AvailableBackends}">
-                            <ItemsControl.ItemsPanel>
+                        <ListBox ItemsSource="{Binding AvailableBackends}"
+                                 SelectedItem="{Binding SelectedBackend, Mode=TwoWay}"
+                                 Background="Transparent"
+                                 BorderThickness="0">
+                            <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal" />
                                 </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <RadioButton
-                                        Margin="0,0,16,0"
-                                        Cursor="Hand"
-                                        GroupName="Backend"
-                                        IsChecked="{Binding IsSelected, Mode=TwoWay}">
-                                        <RadioButton.Style>
-                                            <Style TargetType="RadioButton">
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="RadioButton">
-                                                            <Border
-                                                                x:Name="border"
-                                                                Padding="16,12"
-                                                                Background="{StaticResource SurfaceLightBrush}"
-                                                                BorderBrush="{StaticResource BorderBrush}"
-                                                                BorderThickness="2"
-                                                                CornerRadius="8">
-                                                                <TextBlock Foreground="{StaticResource TextPrimaryBrush}" Text="{Binding Converter={StaticResource BackendToString}}" />
-                                                            </Border>
-                                                            <ControlTemplate.Triggers>
-                                                                <Trigger Property="IsChecked" Value="True">
-                                                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-                                                                    <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}" />
-                                                                </Trigger>
-                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryLightBrush}" />
-                                                                </Trigger>
-                                                            </ControlTemplate.Triggers>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </RadioButton.Style>
-                                    </RadioButton>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="border"
+                                                        Margin="0,0,12,0"
+                                                        Padding="16,12"
+                                                        Background="{StaticResource SurfaceLightBrush}"
+                                                        BorderBrush="{StaticResource BorderBrush}"
+                                                        BorderThickness="2"
+                                                        CornerRadius="8"
+                                                        Cursor="Hand">
+                                                    <TextBlock Foreground="{StaticResource TextPrimaryBrush}" 
+                                                               Text="{Binding Converter={StaticResource BackendToString}}" />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryLightBrush}" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
 
                         <!--  Backend Options as Buttons  -->
                         <StackPanel Margin="0,12,0,0" Orientation="Horizontal">

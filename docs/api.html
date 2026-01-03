@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - KaiROS AI</title>
+    <meta name="description"
+        content="KaiROS AI Local REST API Documentation. OpenAI-compatible endpoints for chat and model management.">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0f0f23;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --accent: #667eea;
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --get: #2196f3;
+            --post: #4caf50;
+            --success: #4caf50;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .nav-brand img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Quick Start */
+        .quick-start {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .quick-start h2 {
+            margin-bottom: 16px;
+            font-size: 1.3rem;
+        }
+
+        .quick-start ol {
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        .quick-start li {
+            margin-bottom: 8px;
+        }
+
+        /* Endpoints */
+        .endpoint {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .endpoint-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .method {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .method.get {
+            background: var(--get);
+            color: white;
+        }
+
+        .method.post {
+            background: var(--post);
+            color: white;
+        }
+
+        .path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .endpoint-body {
+            padding: 24px;
+        }
+
+        .endpoint-body h4 {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .endpoint-body p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .json-key {
+            color: #9cdcfe;
+        }
+
+        .json-string {
+            color: #ce9178;
+        }
+
+        .json-number {
+            color: #b5cea8;
+        }
+
+        /* Response */
+        .response-label {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .response-label.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+        }
+
+        .response-label.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        td {
+            color: var(--text-primary);
+        }
+
+        td code {
+            font-size: 0.85rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 60px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html" class="nav-brand">
+                <img src="assets/logo.png" alt="KaiROS AI">
+                <span>KaiROS AI</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#features">Features</a>
+                <a href="index.html#download">Download</a>
+                <a href="https://github.com/avikeid2007/Kairos.local">GitHub</a>
+            </div>
+        </nav>
+
+        <div class="header">
+            <h1>🔌 API Documentation</h1>
+            <p>Local REST API for integration with your tools and workflows</p>
+        </div>
+
+        <div class="quick-start">
+            <h2>⚡ Quick Start</h2>
+            <ol>
+                <li>Open KaiROS AI and load a model</li>
+                <li>Go to <strong>Settings → API Server</strong> and enable the API</li>
+                <li>Send requests to <code>http://localhost:5000/</code></li>
+            </ol>
+        </div>
+
+        <!-- GET / -->
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="path">/</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Returns a beautiful HTML documentation page with API status.</p>
+                <h4>Response</h4>
+                <span class="response-label success">200 OK</span>
+                <pre><code>HTML page with API documentation and status</code></pre>
+            </div>
+        </div>
+
+        <!-- GET /health -->
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="path">/health</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Check API status and currently loaded model.</p>
+                <h4>Response</h4>
+                <span class="response-label success">200 OK</span>
+                <pre><code>{
+  <span class="json-key">"status"</span>: <span class="json-string">"ok"</span>,
+  <span class="json-key">"model"</span>: <span class="json-string">"phi-3-mini-4k-instruct.Q4_K_M.gguf"</span>,
+  <span class="json-key">"version"</span>: <span class="json-string">"1.0.0"</span>
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- GET /models -->
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="path">/models</span>
+            </div>
+            <div class="endpoint-body">
+                <p>List all downloaded models available for use.</p>
+                <h4>Response</h4>
+                <span class="response-label success">200 OK</span>
+                <pre><code>{
+  <span class="json-key">"object"</span>: <span class="json-string">"list"</span>,
+  <span class="json-key">"data"</span>: [
+    {
+      <span class="json-key">"id"</span>: <span class="json-string">"phi-3-mini-4k-instruct.Q4_K_M.gguf"</span>,
+      <span class="json-key">"object"</span>: <span class="json-string">"model"</span>,
+      <span class="json-key">"owned_by"</span>: <span class="json-string">"kairos-local"</span>
+    }
+  ]
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- POST /chat -->
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method post">POST</span>
+                <span class="path">/chat</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Send a message and receive a complete response (non-streaming).</p>
+
+                <h4>Request Body</h4>
+                <table>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><code>messages</code></td>
+                        <td>array</td>
+                        <td>Array of message objects with <code>role</code> and <code>content</code></td>
+                    </tr>
+                </table>
+
+                <h4>Example Request</h4>
+                <pre><code>curl -X POST http://localhost:5000/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="json-key">"messages"</span>: [
+      { <span class="json-key">"role"</span>: <span class="json-string">"user"</span>, <span class="json-key">"content"</span>: <span class="json-string">"Hello!"</span> }
+    ]
+  }'</code></pre>
+
+                <h4>Response</h4>
+                <span class="response-label success">200 OK</span>
+                <pre><code>{
+  <span class="json-key">"model"</span>: <span class="json-string">"phi-3-mini-4k-instruct.Q4_K_M.gguf"</span>,
+  <span class="json-key">"content"</span>: <span class="json-string">"Hello! How can I help you today?"</span>,
+  <span class="json-key">"token_count"</span>: <span class="json-number">8</span>
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- POST /chat/stream -->
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method post">POST</span>
+                <span class="path">/chat/stream</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Send a message and receive a streaming response (Server-Sent Events).</p>
+
+                <h4>Request Body</h4>
+                <p>Same as <code>/chat</code></p>
+
+                <h4>Example Request</h4>
+                <pre><code>curl -X POST http://localhost:5000/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello!"}]}'</code></pre>
+
+                <h4>Response (SSE Stream)</h4>
+                <span class="response-label success">200 OK</span>
+                <pre><code>data: {<span class="json-key">"content"</span>: <span class="json-string">"Hello"</span>}
+
+data: {<span class="json-key">"content"</span>: <span class="json-string">"!"</span>}
+
+data: {<span class="json-key">"content"</span>: <span class="json-string">" How"</span>}
+
+data: {<span class="json-key">"content"</span>: <span class="json-string">" can"</span>}
+
+data: [DONE]</code></pre>
+            </div>
+        </div>
+
+        <!-- Error Responses -->
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="path">Error Responses</span>
+            </div>
+            <div class="endpoint-body">
+                <h4>503 - No Model Loaded</h4>
+                <span class="response-label error">503</span>
+                <pre><code>{
+  <span class="json-key">"error"</span>: {
+    <span class="json-key">"message"</span>: <span class="json-string">"No model loaded. Please load a model first."</span>,
+    <span class="json-key">"type"</span>: <span class="json-string">"invalid_request_error"</span>
+  }
+}</code></pre>
+
+                <h4>400 - Invalid Request</h4>
+                <span class="response-label error">400</span>
+                <pre><code>{
+  <span class="json-key">"error"</span>: {
+    <span class="json-key">"message"</span>: <span class="json-string">"Messages array is required"</span>,
+    <span class="json-key">"type"</span>: <span class="json-string">"invalid_request_error"</span>
+  }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>KaiROS AI • <a href="https://github.com/avikeid2007/Kairos.local">GitHub</a> • Made with ❤️ for local AI
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
