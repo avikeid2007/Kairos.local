@@ -324,6 +324,17 @@
                     <Run Text="⏱"/>
                     <Run Text="{Binding ElapsedTime}"/>
                 </TextBlock>
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="20,0,0,0">
+                    <Run Text="📐"/>
+                    <Run Text="Ctx:"/>
+                    <Run Text="{Binding ContextWindow}"/>
+                </TextBlock>
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="20,0,0,0">
+                    <Run Text="🎮"/>
+                    <Run Text="GPU:"/>
+                    <Run Text="{Binding GpuLayers}"/>
+                    <Run Text="layers"/>
+                </TextBlock>
             </StackPanel>
         </Border>
         </Grid>
