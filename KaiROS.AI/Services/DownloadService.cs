@@ -10,7 +10,7 @@ public class DownloadService : IDownloadService
     private readonly string _modelsDirectory;
     private readonly Dictionary<string, CancellationTokenSource> _activeDownloads = new();
     private readonly Dictionary<string, long> _pausedDownloads = new(); // Tracks bytes downloaded
-    
+
     public DownloadService(string modelsDirectory)
     {
         _modelsDirectory = modelsDirectory;
@@ -19,16 +19,16 @@ public class DownloadService : IDownloadService
             Timeout = TimeSpan.FromMinutes(30) // Allow long downloads but prevent infinite hanging
         };
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "KaiROS-AI/1.0");
-        
+
         Directory.CreateDirectory(_modelsDirectory);
     }
-    
+
     public async Task<bool> DownloadFileAsync(string url, string destinationPath, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         var modelName = Path.GetFileName(destinationPath);
         var partialPath = destinationPath + ".partial";
         long existingBytes = 0;
-        
+
         try
         {
             // Check for partial download
@@ -36,21 +36,21 @@ public class DownloadService : IDownloadService
             {
                 existingBytes = new FileInfo(partialPath).Length;
             }
-            
+
             // Create cancellation token source for this download
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _activeDownloads[modelName] = cts;
-            
+
             // Setup request with range header for resume
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             if (existingBytes > 0)
             {
                 request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(existingBytes, null);
             }
-            
+
             using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
             response.EnsureSuccessStatusCode();
-            
+
             var totalBytes = response.Content.Headers.ContentLength ?? 0;
             if (existingBytes > 0 && response.StatusCode == System.Net.HttpStatusCode.PartialContent)
             {
@@ -60,7 +60,7 @@ public class DownloadService : IDownloadService
             {
                 existingBytes = 0; // Server doesn't support range, start fresh
             }
-            
+
             await using var contentStream = await response.Content.ReadAsStreamAsync(cts.Token);
             await using var fileStream = new FileStream(
                 partialPath,
@@ -69,33 +69,54 @@ public class DownloadService : IDownloadService
                 FileShare.None,
                 bufferSize: 81920,
                 useAsync: true);
-            
+
             var buffer = new byte[81920];
             long totalBytesRead = existingBytes;
             int bytesRead;
-            
+
             while ((bytesRead = await contentStream.ReadAsync(buffer, cts.Token)) > 0)
             {
                 await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cts.Token);
                 totalBytesRead += bytesRead;
-                
+
                 if (totalBytes > 0)
                 {
                     progress?.Report((double)totalBytesRead / totalBytes * 100);
                 }
             }
-            
+
             await fileStream.FlushAsync(cts.Token);
             fileStream.Close();
-            
+
+            // Verify download is complete before renaming
+            var downloadedSize = new FileInfo(partialPath).Length;
+            System.Diagnostics.Debug.WriteLine($"[Download] Downloaded {downloadedSize} bytes, expected {totalBytes} bytes");
+
+            // Check if download is complete (allow 1% tolerance for Content-Length variations)
+            if (totalBytes > 0)
+            {
+                var sizeDifference = Math.Abs(downloadedSize - totalBytes);
+                var toleranceBytes = (long)(totalBytes * 0.01);
+
+                if (sizeDifference > toleranceBytes)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Download] INCOMPLETE! Missing {totalBytes - downloadedSize} bytes. Keeping partial file for resume.");
+                    _activeDownloads.Remove(modelName);
+                    _pausedDownloads[modelName] = downloadedSize;
+                    return false; // Don't rename incomplete file
+                }
+            }
+
             // Rename partial to final
             if (File.Exists(destinationPath))
                 File.Delete(destinationPath);
             File.Move(partialPath, destinationPath);
-            
+
+            System.Diagnostics.Debug.WriteLine($"[Download] SUCCESS - File saved to {destinationPath}");
+
             _activeDownloads.Remove(modelName);
             _pausedDownloads.Remove(modelName);
-            
+
             return true;
         }
         catch (OperationCanceledException)
@@ -113,7 +134,7 @@ public class DownloadService : IDownloadService
             throw;
         }
     }
-    
+
     public Task PauseDownloadAsync(string modelName)
     {
         if (_activeDownloads.TryGetValue(modelName, out var cts))
@@ -122,41 +143,43 @@ public class DownloadService : IDownloadService
         }
         return Task.CompletedTask;
     }
-    
+
     public Task ResumeDownloadAsync(string modelName)
     {
         // Resume is handled by DownloadFileAsync checking for partial file
         return Task.CompletedTask;
     }
-    
+
     public async Task<bool> VerifyFileIntegrityAsync(string filePath, long expectedSize)
     {
         System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: Checking {filePath}");
-        
+
         if (!File.Exists(filePath))
         {
             System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: File does not exist!");
             return false;
         }
-        
+
         var fileInfo = new FileInfo(filePath);
-        System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: File size = {fileInfo.Length} bytes, expected = {expectedSize} bytes");
-        
+        System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: File size = {fileInfo.Length} bytes");
+
         // File must have some content (at least 1MB for GGUF files)
         if (fileInfo.Length < 1_000_000)
         {
             System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: File too small ({fileInfo.Length} bytes)");
             return false;
         }
-        
-        // Just verify file is readable - don't check exact size as HuggingFace may vary
+
+        // Note: We no longer verify against expectedSize from config
+        // Download already verifies against Content-Length from server
+
+        // Verify file is readable
         try
         {
             await using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var buffer = new byte[4096];
-            
+
             // Read first chunk to verify file integrity
-            // Use proper buffer size calculation to avoid int overflow for large files
             int bytesToRead = fileInfo.Length > 4096 ? 4096 : (int)fileInfo.Length;
             var bytesRead = await fs.ReadAsync(buffer.AsMemory(0, bytesToRead));
             if (bytesRead == 0)
@@ -164,7 +187,18 @@ public class DownloadService : IDownloadService
                 System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: Could not read file start");
                 return false;
             }
-            
+
+            // Check GGUF magic number (first 4 bytes should be "GGUF")
+            if (buffer[0] == 'G' && buffer[1] == 'G' && buffer[2] == 'U' && buffer[3] == 'F')
+            {
+                System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: Valid GGUF header detected");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: FAILED - No valid GGUF header! File may be corrupted.");
+                return false;
+            }
+
             // Read last chunk for large files
             if (fileInfo.Length > 4096)
             {
@@ -176,7 +210,7 @@ public class DownloadService : IDownloadService
                     return false;
                 }
             }
-            
+
             System.Diagnostics.Debug.WriteLine($"VerifyFileIntegrity: SUCCESS - file is valid");
             return true;
         }
@@ -186,7 +220,7 @@ public class DownloadService : IDownloadService
             return false;
         }
     }
-    
+
     public bool HasPartialDownload(string modelName)
     {
         var partialPath = Path.Combine(_modelsDirectory, modelName + ".partial");

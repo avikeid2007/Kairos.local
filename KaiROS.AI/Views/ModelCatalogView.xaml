@@ -8,6 +8,7 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <converters:InverseBoolConverter x:Key="InverseBool"/>
         <converters:CategoryToColorConverter x:Key="CategoryToColor"/>
+        <converters:UrlToImageSourceConverter x:Key="UrlToImage"/>
     </UserControl.Resources>
     
     <Grid>
@@ -43,7 +44,8 @@
         </Grid>
         
         <!-- Filters -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20" HorizontalAlignment="Left">
+            <!-- Category Buttons -->
             <Button Content="All" 
                     Command="{Binding FilterByCategoryCommand}" 
                     CommandParameter="all"
@@ -66,6 +68,44 @@
                     Margin="0,0,8,0"/>
             
             <Border Width="1" Background="{StaticResource BorderBrush}" Margin="8,4"/>
+            
+            <!-- Organization Filter -->
+            <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+                <TextBlock Text="Org:" 
+                           Foreground="{StaticResource TextSecondaryBrush}" 
+                           VerticalAlignment="Center" 
+                           Margin="0,0,6,0"/>
+                <ComboBox ItemsSource="{Binding Organizations}" 
+                          SelectedItem="{Binding SelectedOrganization}"
+                          Width="100"
+                          Style="{StaticResource ModernComboBox}"/>
+            </StackPanel>
+            
+            <!-- Family Filter -->
+            <StackPanel Orientation="Horizontal" Margin="12,0,0,0">
+                <TextBlock Text="Family:" 
+                           Foreground="{StaticResource TextSecondaryBrush}" 
+                           VerticalAlignment="Center" 
+                           Margin="0,0,6,0"/>
+                <ComboBox ItemsSource="{Binding Families}" 
+                          SelectedItem="{Binding SelectedFamily}"
+                          Width="90"
+                          Style="{StaticResource ModernComboBox}"/>
+            </StackPanel>
+            
+            <!-- Variant Filter -->
+            <StackPanel Orientation="Horizontal" Margin="12,0,0,0">
+                <TextBlock Text="Variant:" 
+                           Foreground="{StaticResource TextSecondaryBrush}" 
+                           VerticalAlignment="Center" 
+                           Margin="0,0,6,0"/>
+                <ComboBox ItemsSource="{Binding Variants}" 
+                          SelectedItem="{Binding SelectedVariant}"
+                          Width="120"
+                          Style="{StaticResource ModernComboBox}"/>
+            </StackPanel>
+            
+            <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,4"/>
             
             <ToggleButton x:Name="RecommendedToggle" 
                           Content="★ Recommended Only" 
@@ -108,223 +148,246 @@
             
             <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ModernTextBox}"
-                     Width="250"
+                     Width="200"
                      Margin="16,0,0,0"/>
         </StackPanel>
         
         <!-- Model List -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding FilteredModels}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:ModelItemViewModel}">
-                        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                
-                                <StackPanel>
-                                    <!-- Title Row -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                        <TextBlock Text="{Binding Model.DisplayName}" 
-                                                   FontSize="18" 
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        
-                                        <Border Style="{StaticResource RecommendedBadge}" 
-                                                Margin="12,0,0,0"
-                                                Visibility="{Binding Model.IsRecommended, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="★ Recommended" 
-                                                       Foreground="White" 
-                                                       FontSize="11" 
-                                                       FontWeight="SemiBold"/>
-                                        </Border>
-                                        
-                                        <Border Style="{StaticResource CategoryBadge}" Margin="8,0,0,0">
-                                            <TextBlock FontSize="11" FontWeight="SemiBold">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="{Binding Model.Category}"/>
-                                                        <Setter Property="Foreground">
-                                                            <Setter.Value>
-                                                                <SolidColorBrush Color="{Binding Model.Category, Converter={StaticResource CategoryToColor}}"/>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Border>
-                                        
-                                        <Border Background="{StaticResource PrimaryBrush}" 
-                                                CornerRadius="4" 
-                                                Padding="8,4" 
-                                                Margin="8,0,0,0"
-                                                Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="ACTIVE" 
-                                                       Foreground="White" 
-                                                       FontSize="10" 
-                                                       FontWeight="Bold"/>
-                                        </Border>
-                                    </StackPanel>
-                                    
-                                    <!-- Description -->
-                                    <TextBlock Text="{Binding Model.Description}" 
-                                               Foreground="{StaticResource TextSecondaryBrush}"
-                                               TextWrapping="Wrap"
-                                               Margin="0,0,0,12"/>
-                                    
-                                    <!-- Meta Info -->
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="13">
-                                            <Run Text="💾"/>
-                                            <Run Text="{Binding Model.SizeText}"/>
-                                        </TextBlock>
-                                        <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="13" Margin="16,0,0,0">
-                                            <Run Text="🧠"/>
-                                            <Run Text="{Binding Model.MinRam}"/>
-                                            <Run Text="RAM"/>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding Model.Capabilities}" 
-                                                   Foreground="{StaticResource TextMutedBrush}" 
-                                                   FontSize="13"
-                                                   Margin="16,0,0,0"/>
-                                    </StackPanel>
-                                    
-                                    <!-- Download Progress -->
-                                    <Grid Margin="0,12,0,0" Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
-                                        <ProgressBar Value="{Binding DownloadProgress}" 
-                                                     Maximum="100"
-                                                     Height="6"
-                                                     Style="{StaticResource ModernProgressBar}"/>
-                                        <TextBlock Text="{Binding DownloadProgress, StringFormat={}{0:F1}%}" 
-                                                   HorizontalAlignment="Right"
-                                                   Margin="0,10,0,0"
-                                                   FontSize="12"
-                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
-                                    </Grid>
-                                </StackPanel>
-                                
-                                <!-- Actions -->
-                                <StackPanel Grid.Column="1" 
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal"
-                                            Margin="20,0,0,0">
-                                    
-                                    <!-- Download Button (only when not downloaded, not downloading, not paused) -->
-                                    <Button Command="{Binding DownloadCommand}"
-                                            Content="Download">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource AccentButton}">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsDownloaded}" Value="True">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsDownloading}" Value="True">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsPaused}" Value="True">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                    </Button>
-                                    
-                                    <!-- Pause Button -->
-                                    <Button Command="{Binding PauseCommand}"
-                                            Style="{StaticResource SecondaryButton}"
-                                            Content="⏸ Pause"
-                                            Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}"/>
-                                    
-                                    <!-- Resume Button -->
-                                    <Button Command="{Binding ResumeCommand}"
-                                            Style="{StaticResource AccentButton}"
-                                            Content="▶ Resume"
-                                            Visibility="{Binding IsPaused, Converter={StaticResource BoolToVis}}"/>
-                                    
-                                    <!-- Load/Active Buttons for Downloaded Models -->
-                                    <StackPanel Orientation="Horizontal"
-                                                Visibility="{Binding ShowLoadButton, Converter={StaticResource BoolToVis}}">
-                                        <!-- Load Model Button with Loading State -->
-                                        <Button Command="{Binding SetActiveCommand}"
-                                                Style="{StaticResource PrimaryButton}"
-                                                Margin="0,0,8,0"
-                                                IsEnabled="{Binding IsActive, Converter={StaticResource InverseBool}}">
-                                            <Button.Content>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <!-- Loading Spinner (visible when loading) -->
-                                                    <Border x:Name="LoadingSpinner" 
-                                                            Width="16" Height="16" 
-                                                            Margin="0,0,8,0"
-                                                            RenderTransformOrigin="0.5,0.5"
-                                                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
-                                                        <Border.RenderTransform>
-                                                            <RotateTransform x:Name="SpinnerRotation"/>
-                                                        </Border.RenderTransform>
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                                        <DataTrigger.EnterActions>
-                                                                            <BeginStoryboard>
-                                                                                <Storyboard RepeatBehavior="Forever">
-                                                                                    <DoubleAnimation 
-                                                                                        Storyboard.TargetProperty="(Border.RenderTransform).(RotateTransform.Angle)"
-                                                                                        From="0" To="360" Duration="0:0:1"/>
-                                                                                </Storyboard>
-                                                                            </BeginStoryboard>
-                                                                        </DataTrigger.EnterActions>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <Ellipse Width="14" Height="14" 
-                                                                 StrokeThickness="2"
-                                                                 Stroke="{StaticResource TextPrimaryBrush}">
-                                                            <Ellipse.StrokeDashArray>
-                                                                <DoubleCollection>3,3</DoubleCollection>
-                                                            </Ellipse.StrokeDashArray>
-                                                        </Ellipse>
+            <StackPanel>
+                
+                <!-- Downloaded Models Section (Always at Top) -->
+                <Border Style="{StaticResource DownloadedSectionBorder}"
+                        Visibility="{Binding DownloadedModels.Count, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <TextBlock Text="✓" FontSize="20" Foreground="#10B981" VerticalAlignment="Center"/>
+                            <TextBlock Text=" Downloaded Models" FontSize="20" FontWeight="Bold" 
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <Border Background="#10B981" CornerRadius="10" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DownloadedModels.Count}" FontSize="12" 
+                                           Foreground="White" FontWeight="Bold"/>
+                            </Border>
+                        </StackPanel>
+                        
+                        <ItemsControl ItemsSource="{Binding DownloadedModels}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ModelItemViewModel}">
+                                    <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                    <Image Width="24" Height="24" Margin="0,0,10,0" VerticalAlignment="Center"
+                                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                                           Source="{Binding Model.OrgLogoUrl, Converter={StaticResource UrlToImage}}"/>
+                                                    <TextBlock Text="{Binding Model.DisplayName}" FontSize="18" FontWeight="SemiBold"
+                                                               VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                    <Border Background="{StaticResource PrimaryBrush}" CornerRadius="4" Padding="8,4" Margin="12,0,0,0"
+                                                            Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="ACTIVE" Foreground="White" FontSize="10" FontWeight="Bold"/>
                                                     </Border>
-                                                    <!-- Text changes based on loading state -->
-                                                    <TextBlock>
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Text" Value="Load Model"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                                        <Setter Property="Text" Value="Loading..."/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                        <Setter Property="Text" Value="Active ✓"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
+                                                    <Border Background="#3d4450" CornerRadius="4" Padding="6,3" Margin="6,0,0,0">
+                                                        <TextBlock Text="{Binding Model.Family}" Foreground="#a0a8b4" FontSize="10" FontWeight="SemiBold"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Model.Description}" Foreground="{StaticResource TextSecondaryBrush}"
+                                                           TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="13">
+                                                        <Run Text="💾"/><Run Text="{Binding Model.SizeText}"/>
                                                     </TextBlock>
                                                 </StackPanel>
-                                            </Button.Content>
-                                        </Button>
-                                        
-                                        <Button Command="{Binding DeleteCommand}"
-                                                Style="{StaticResource IconButton}"
-                                                Content="🗑"
-                                                ToolTip="Delete model"/>
+                                            </StackPanel>
+                                            
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal" Margin="20,0,0,0">
+                                                <Button Command="{Binding SetActiveCommand}" Style="{StaticResource PrimaryButton}" 
+                                                        Content="Load Model" Margin="0,0,8,0"
+                                                        IsEnabled="{Binding IsActive, Converter={StaticResource InverseBool}}"/>
+                                                <Button Command="{Binding DeleteCommand}" Style="{StaticResource IconButton}" Content="🗑" ToolTip="Delete model"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Organization Sections -->
+                <TextBlock Text="All Models by Organization" FontSize="20" FontWeight="Bold" 
+                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+                
+                <ItemsControl ItemsSource="{Binding GroupedModels}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:OrganizationGroup}">
+                            <Expander IsExpanded="{Binding IsExpanded, Mode=TwoWay}" 
+                                      Style="{StaticResource OrganizationExpander}">
+                                <Expander.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Width="28" Height="28" Margin="0,0,12,0" VerticalAlignment="Center"
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               Source="{Binding LogoUrl, Converter={StaticResource UrlToImage}}"/>
+                                        <TextBlock Text="{Binding OrganizationName}" FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <Border Background="{StaticResource PrimaryBrush}" CornerRadius="10" Padding="10,3" Margin="12,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock FontSize="12" Foreground="White" FontWeight="SemiBold">
+                                                <Run Text="{Binding ModelCount, Mode=OneWay}"/>
+                                                <Run Text=" models"/>
+                                            </TextBlock>
+                                        </Border>
+                                        <Border Background="#2a5a4a" CornerRadius="10" Padding="8,3" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                Visibility="{Binding DownloadedCount, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock FontSize="11" Foreground="#10B981" FontWeight="SemiBold">
+                                                <Run Text="{Binding DownloadedCount, Mode=OneWay}"/>
+                                                <Run Text=" downloaded"/>
+                                            </TextBlock>
+                                        </Border>
                                     </StackPanel>
-                                    
-                                    <!-- Loading Indicator -->
-                                    <TextBlock Text="{Binding LoadingText}" 
-                                               Foreground="{StaticResource TextSecondaryBrush}"
-                                               VerticalAlignment="Center"
-                                               Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                </Expander.Header>
+                                
+                                <ItemsControl ItemsSource="{Binding Models}" Margin="0,8,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:ModelItemViewModel}">
+                                            <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    
+                                                    <StackPanel>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                            <Image Width="24" Height="24" Margin="0,0,10,0" VerticalAlignment="Center"
+                                                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                                                   Source="{Binding Model.OrgLogoUrl, Converter={StaticResource UrlToImage}}"/>
+                                                            <TextBlock Text="{Binding Model.DisplayName}" FontSize="18" FontWeight="SemiBold"
+                                                                       VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                            <Border Style="{StaticResource RecommendedBadge}" Margin="12,0,0,0"
+                                                                    Visibility="{Binding Model.IsRecommended, Converter={StaticResource BoolToVis}}">
+                                                                <TextBlock Text="★ Recommended" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                                            </Border>
+                                                            <Border Style="{StaticResource CategoryBadge}" Margin="8,0,0,0">
+                                                                <TextBlock Text="{Binding Model.Category}" FontSize="11" FontWeight="SemiBold">
+                                                                    <TextBlock.Foreground>
+                                                                        <SolidColorBrush Color="{Binding Model.Category, Converter={StaticResource CategoryToColor}}"/>
+                                                                    </TextBlock.Foreground>
+                                                                </TextBlock>
+                                                            </Border>
+                                                            <Border Background="#3d4450" CornerRadius="4" Padding="6,3" Margin="6,0,0,0">
+                                                                <TextBlock Text="{Binding Model.Family}" Foreground="#a0a8b4" FontSize="10" FontWeight="SemiBold"/>
+                                                            </Border>
+                                                            <Border CornerRadius="4" Padding="6,3" Margin="6,0,0,0">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Background" Value="#2d4a3e"/>
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Model.Variant}" Value="All">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Model.Variant}" Value="CPU-Only">
+                                                                                <Setter Property="Background" Value="#3d4a50"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Model.Variant}" Value="GPU-Recommended">
+                                                                                <Setter Property="Background" Value="#4a3d50"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <TextBlock Text="{Binding Model.Variant}" Foreground="#90a090" FontSize="10" FontWeight="SemiBold"/>
+                                                            </Border>
+                                                            <Border Background="{StaticResource PrimaryBrush}" CornerRadius="4" Padding="8,4" Margin="8,0,0,0"
+                                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
+                                                                <TextBlock Text="ACTIVE" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                                                            </Border>
+                                                            <Border Background="#10B981" CornerRadius="4" Padding="6,3" Margin="6,0,0,0"
+                                                                    Visibility="{Binding IsDownloaded, Converter={StaticResource BoolToVis}}">
+                                                                <TextBlock Text="✓ Downloaded" Foreground="White" FontSize="10" FontWeight="SemiBold"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                        
+                                                        <TextBlock Text="{Binding Model.Description}" Foreground="{StaticResource TextSecondaryBrush}"
+                                                                   TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                                        
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="13">
+                                                                <Run Text="💾"/><Run Text="{Binding Model.SizeText}"/>
+                                                            </TextBlock>
+                                                            <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="13" Margin="16,0,0,0">
+                                                                <Run Text="🧠"/><Run Text="{Binding Model.MinRam}"/><Run Text=" RAM"/>
+                                                            </TextBlock>
+                                                            <TextBlock Text="{Binding Model.Capabilities}" Foreground="{StaticResource TextMutedBrush}" 
+                                                                       FontSize="13" Margin="16,0,0,0"/>
+                                                        </StackPanel>
+                                                        
+                                                        <Grid Margin="0,12,0,0" Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
+                                                            <ProgressBar Value="{Binding DownloadProgress}" Maximum="100" Height="6" Style="{StaticResource ModernProgressBar}"/>
+                                                            <TextBlock Text="{Binding DownloadProgress, StringFormat={}{0:F1}%}" HorizontalAlignment="Right"
+                                                                       Margin="0,10,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal" Margin="20,0,0,0">
+                                                        <Button Command="{Binding DownloadCommand}" Content="Download">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button" BasedOn="{StaticResource AccentButton}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsDownloaded}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsDownloading}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
+                                                        <Button Command="{Binding PauseCommand}" Style="{StaticResource SecondaryButton}" Content="⏸ Pause"
+                                                                Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}"/>
+                                                        <Button Command="{Binding ResumeCommand}" Style="{StaticResource AccentButton}" Content="▶ Resume"
+                                                                Visibility="{Binding IsPaused, Converter={StaticResource BoolToVis}}"/>
+                                                        <StackPanel Orientation="Horizontal" Visibility="{Binding ShowLoadButton, Converter={StaticResource BoolToVis}}">
+                                                            <Button Command="{Binding SetActiveCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
+                                                                    IsEnabled="{Binding IsActive, Converter={StaticResource InverseBool}}">
+                                                                <TextBlock>
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Setter Property="Text" Value="Load Model"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                                    <Setter Property="Text" Value="Loading..."/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                                    <Setter Property="Text" Value="Active ✓"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </Button>
+                                                            <Button Command="{Binding DeleteCommand}" Style="{StaticResource IconButton}" Content="🗑" ToolTip="Delete model"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </UserControl>

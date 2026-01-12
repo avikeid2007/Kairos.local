@@ -17,8 +17,9 @@ public interface IDocumentService
 public class DocumentService : IDocumentService
 {
     private readonly List<Models.Document> _documents = new();
-    private const int ChunkSize = 500; // Characters per chunk
-    private const int ChunkOverlap = 50; // Overlap between chunks
+    private const int ChunkSize = 1500; // Characters per chunk - increased for better context
+    private const int ChunkOverlap = 100; // Overlap between chunks for continuity
+    private const int SmallDocumentThreshold = 8000; // Documents smaller than this get full context
 
     public List<Models.Document> LoadedDocuments => _documents.ToList();
 
@@ -104,9 +105,9 @@ public class DocumentService : IDocumentService
 
     /// <summary>
     /// Get relevant context from loaded documents for a query
-    /// Uses simple keyword matching for now
+    /// Uses improved keyword matching with numerical/date awareness
     /// </summary>
-    public string GetContextForQuery(string query, int maxChunks = 3)
+    public string GetContextForQuery(string query, int maxChunks = 5)
     {
         System.Diagnostics.Debug.WriteLine($"[RAG] GetContextForQuery called. Documents: {_documents.Count}, Query: {query?.Substring(0, Math.Min(50, query?.Length ?? 0))}...");
 
@@ -116,14 +117,26 @@ public class DocumentService : IDocumentService
             return string.Empty;
         }
 
+        // Check if any document is small enough for full context mode
+        var totalContentLength = _documents.Sum(d => d.Content?.Length ?? 0);
+        if (totalContentLength <= SmallDocumentThreshold)
+        {
+            System.Diagnostics.Debug.WriteLine($"[RAG] Small document mode: returning full content ({totalContentLength} chars)");
+            return GetFullDocumentContext();
+        }
+
         // Log total chunks available
         var totalChunks = _documents.Sum(d => d.Chunks.Count);
         System.Diagnostics.Debug.WriteLine($"[RAG] Total chunks available: {totalChunks}");
 
-        var queryWords = query.ToLower()
+        // Enhanced query word extraction - keep shorter words for numbers and dates
+        var queryWords = (query ?? string.Empty).ToLower()
             .Split(new[] { ' ', '.', ',', '?', '!' }, StringSplitOptions.RemoveEmptyEntries)
-            .Where(w => w.Length > 3) // Filter short words
+            .Where(w => w.Length > 2 || IsNumberOrDate(w)) // Keep numbers and short important words
             .ToHashSet();
+
+        // Add query-related keywords for common document terms
+        AddRelatedKeywords(queryWords, query ?? string.Empty);
 
         // Score all chunks
         var scoredChunks = new List<(DocumentChunk chunk, Document doc, int score)>();
@@ -154,15 +167,16 @@ public class DocumentService : IDocumentService
 
         if (topChunks.Count == 0)
         {
-            System.Diagnostics.Debug.WriteLine("[RAG] No matching chunks, using fallback (first chunk of each doc)");
-            // Return first chunk of each document as fallback
+            System.Diagnostics.Debug.WriteLine("[RAG] No matching chunks, using fallback (multiple chunks per doc)");
+            // Return multiple chunks from each document as fallback
             var sb = new StringBuilder();
             foreach (var doc in _documents.Take(2))
             {
-                if (doc.Chunks.Count > 0)
+                var chunksToTake = Math.Min(3, doc.Chunks.Count);
+                for (int i = 0; i < chunksToTake; i++)
                 {
-                    sb.AppendLine($"[From {doc.FileName}]:");
-                    sb.AppendLine(doc.Chunks[0].Content);
+                    sb.AppendLine($"[From {doc.FileName} - Part {i + 1}]:");
+                    sb.AppendLine(doc.Chunks[i].Content);
                     sb.AppendLine();
                 }
             }
@@ -185,6 +199,72 @@ public class DocumentService : IDocumentService
         context.AppendLine("--- END CONTEXT ---");
         System.Diagnostics.Debug.WriteLine($"[RAG] Context built: {context.Length} characters");
         return context.ToString();
+    }
+
+    /// <summary>
+    /// Returns full document content for small documents
+    /// </summary>
+    private string GetFullDocumentContext()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("--- FULL DOCUMENT CONTEXT ---");
+
+        foreach (var doc in _documents)
+        {
+            sb.AppendLine($"[Document: {doc.FileName}]:");
+            sb.AppendLine(doc.Content);
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("--- END CONTEXT ---");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Check if a word is a number, date, or date-related term
+    /// </summary>
+    private static bool IsNumberOrDate(string word)
+    {
+        // Check for numbers (including amounts like 50000, 1234.56)
+        if (double.TryParse(word.Replace(",", ""), out _))
+            return true;
+
+        // Check for common date/quarter patterns
+        var datePatterns = new[] { "q1", "q2", "q3", "q4", "jan", "feb", "mar", "apr", "may", "jun",
+            "jul", "aug", "sep", "oct", "nov", "dec", "2024", "2025", "2026" };
+        return datePatterns.Contains(word.ToLower());
+    }
+
+    /// <summary>
+    /// Add related keywords based on query context for better matching
+    /// </summary>
+    private static void AddRelatedKeywords(HashSet<string> queryWords, string query)
+    {
+        var lowerQuery = query.ToLower();
+
+        // Tax-related keyword expansions
+        if (lowerQuery.Contains("tax") || lowerQuery.Contains("tds"))
+        {
+            queryWords.UnionWith(new[] { "tax", "tds", "deducted", "deduction", "amount", "challan", "deposited" });
+        }
+
+        // Quarterly-related expansions
+        if (lowerQuery.Contains("quarter") || lowerQuery.Contains("quarterly"))
+        {
+            queryWords.UnionWith(new[] { "q1", "q2", "q3", "q4", "quarter", "quarterly", "april", "june", "july", "september", "october", "december", "january", "march" });
+        }
+
+        // Salary-related expansions
+        if (lowerQuery.Contains("salary") || lowerQuery.Contains("income"))
+        {
+            queryWords.UnionWith(new[] { "salary", "income", "gross", "net", "allowance", "exemption", "section" });
+        }
+
+        // Deduction-related expansions
+        if (lowerQuery.Contains("deduction") || lowerQuery.Contains("section"))
+        {
+            queryWords.UnionWith(new[] { "deduction", "section", "16", "10", "chapter", "vi-a", "80c", "80d" });
+        }
     }
 
     private static DocumentType GetDocumentType(string extension)

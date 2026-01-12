@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media.Imaging;
 using KaiROS.AI.Models;
 
 namespace KaiROS.AI.Converters;
@@ -11,9 +12,9 @@ public class BoolToVisibilityConverter : IValueConverter
     {
         bool invert = parameter?.ToString() == "Invert";
         bool boolValue = value is bool b && b;
-        
+
         if (invert) boolValue = !boolValue;
-        
+
         return boolValue ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -43,7 +44,7 @@ public class CategoryToColorConverter : IValueConverter
         return value?.ToString()?.ToLower() switch
         {
             "small" => "#10B981",
-            "medium" => "#F59E0B", 
+            "medium" => "#F59E0B",
             "large" => "#EF4444",
             _ => "#6B7280"
         };
@@ -148,3 +149,44 @@ public class ProgressToWidthMultiConverter : IMultiValueConverter
         throw new NotImplementedException();
     }
 }
+
+public class UrlToImageSourceConverter : IValueConverter
+{
+    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is string url && !string.IsNullOrWhiteSpace(url))
+        {
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+
+                // Handle both pack:// URIs (local resources) and HTTP URLs
+                if (url.StartsWith("pack://", StringComparison.OrdinalIgnoreCase))
+                {
+                    bitmap.UriSource = new Uri(url, UriKind.Absolute);
+                }
+                else
+                {
+                    bitmap.UriSource = new Uri(url, UriKind.Absolute);
+                }
+
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.DecodePixelWidth = 48; // Optimize for display size
+                bitmap.EndInit();
+                return bitmap;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+

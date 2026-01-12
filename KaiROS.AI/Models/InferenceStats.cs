@@ -12,9 +12,13 @@ public class InferenceStats
     public TimeSpan ElapsedTime { get; set; }
     public long MemoryUsageBytes { get; set; }
     public string BackendInUse { get; set; } = string.Empty;
-    
+
+    // Context and GPU settings
+    public uint ContextSize { get; set; }
+    public int GpuLayers { get; set; }
+
     public string MemoryUsageText => FormatBytes(MemoryUsageBytes);
-    
+
     private static string FormatBytes(long bytes)
     {
         if (bytes <= 0) return "N/A";

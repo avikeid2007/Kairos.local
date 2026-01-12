@@ -15,7 +15,13 @@ public class LLMModelInfo
     public string MinRam { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public bool IsRecommended { get; set; }
-    
+
+    // New metadata properties for filtering and display
+    public string Organization { get; set; } = string.Empty;
+    public string OrgLogoUrl { get; set; } = string.Empty;
+    public string Family { get; set; } = string.Empty;
+    public string Variant { get; set; } = "All"; // All, CPU-Only, GPU-Recommended
+
     // Runtime properties (not from config)
     public bool IsDownloaded { get; set; }
     public string? LocalPath { get; set; }
@@ -23,7 +29,7 @@ public class LLMModelInfo
     public DownloadState DownloadState { get; set; } = DownloadState.NotStarted;
     public bool IsActive { get; set; }
     public string? LoadError { get; set; }
-    
+
     // Custom model properties
     public bool IsCustomModel { get; set; }
     public int CustomModelId { get; set; }
