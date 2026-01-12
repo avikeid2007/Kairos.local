@@ -123,6 +123,11 @@ curl -X POST http://localhost:5000/chat/stream \
 ![Model Catalog](docs/assets/model-all.png)
 *Browse and download from 31 pre-configured models organized by organization*
 
+### Chat Interface
+
+![Chat Interface](docs/assets/chat.png)
+*Chat with AI using streaming responses*
+
 ### RAG (Document Chat)
 
 ![RAG Document Chat](docs/assets/RAG.png)
