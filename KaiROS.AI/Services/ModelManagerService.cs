@@ -372,6 +372,7 @@ public class ModelManagerService : IModelManagerService
 
         // Get available VRAM in GB
         double vramGB = hardwareInfo.GpuMemoryBytes / (1024.0 * 1024.0 * 1024.0);
+        if (vramGB <= 0) vramGB = 0; // Don't assume VRAM if detection failed - fallback to CPU
 
         // Get model size in GB
         double modelSizeGB = model.SizeBytes / (1024.0 * 1024.0 * 1024.0);

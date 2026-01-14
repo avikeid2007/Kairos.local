@@ -62,7 +62,7 @@
 
 ### Advanced
 
-- �🔌 **Local REST API** - OpenAI-compatible API server for integration
+- �🔌 **Local REST API** - Built-in REST API server for integration
   - Endpoints: `/health`, `/models`, `/chat`, `/chat/stream`
   - Works with VS Code Continue, LM Studio clients, curl
 - 🗔 **System Tray** - Minimize to tray when API is running
@@ -182,7 +182,7 @@ curl -X POST http://localhost:5000/chat/stream \
 | **Meta** | 4 | LLaMA 3.1/3.2 + TinyLlama |
 | **Microsoft** | 3 | Phi-2, Phi-3, BitNet b1.58 |
 | **MistralAI** | 2 | Mistral 7B, Mistral Small 24B |
-| **OpenAI** | 1 | GPT-oss 20B ⚠️ Experimental |
+| **Open Source** | 1 | GPT-oss 20B ⚠️ Experimental |
 | **RWKV** | 1 | RWKV-7 0.1B - Linear complexity RNN |
 | **Stability AI** | 1 | StableLM Zephyr 3B |
 

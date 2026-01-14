@@ -3,20 +3,25 @@
 ## 🚀 New Features
 
 ### Custom Model Support
+
 - ➕ Add your own `.gguf` models from local files or download URLs
 - 📦 SQLite database stores custom model entries persistently
 - 🗑️ Delete custom models with one click
 
-### Execution Backend Selection (Now Working!)
-- 🎛️ Choose between CPU, CUDA, DirectML, or NPU in Settings
-- ✅ Selection now properly applies when loading models
-- 📊 Loading text shows actual selected backend
+### Intel Arc & Vulkan Support
+
+- 🎮 **Added Vulkan Backend**: High-performance acceleration specifically for Intel Arc and AMD GPUs.
+- 🛠️ **Cross-Platform Stability**: Vulkan provides better compatibility than DirectML for universal Windows GPU support.
+- 📏 **Arc VRAM Detection**: Correctly identifies VRAM for Intel Arc A770, A750, and other models.
+- 📊 **Improved Status Bar**: Clearer hardware info with unified backend status.
 
 ### API Mode Enhancements
+
 - 🌐 Added `internetClient` and `internetClientServer` capabilities
 - 🔌 Improved API stability
 
 ### RAG Document Support
+
 - 📄 Enhanced debug logging for document loading
 - 🔍 Better context retrieval tracking
 - 📝 Support for PDF, Word, and text files

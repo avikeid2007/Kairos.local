@@ -1,8 +1,9 @@
+using KaiROS.AI.Models;
+
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
-using KaiROS.AI.Models;
 
 namespace KaiROS.AI.Converters;
 
@@ -86,7 +87,6 @@ public class BackendToStringConverter : IValueConverter
         {
             ExecutionBackend.Cpu => "CPU",
             ExecutionBackend.Cuda => "CUDA (NVIDIA)",
-            ExecutionBackend.DirectML => "DirectML (AMD/Intel)",
             ExecutionBackend.Npu => "NPU",
             ExecutionBackend.Auto => "Auto-detect",
             _ => "Unknown"

@@ -152,14 +152,23 @@ public partial class ModelCatalogViewModel : ViewModelBase
         DownloadedModels = new ObservableCollection<ModelItemViewModel>(
             filtered.Where(m => m.IsDownloaded).OrderByDescending(m => m.IsActive));
 
-        // Group by organization
+        // Custom organization ordering: Meta -> Microsoft -> Google -> then alphabetically
+        var orgPriority = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Meta", 0 },
+            { "Microsoft", 1 },
+            { "Google", 2 }
+        };
+
+        // Group by organization with custom order, models sorted by size within each group
         var groups = filtered
             .GroupBy(m => m.Model.Organization)
-            .OrderBy(g => g.Key)
+            .OrderBy(g => orgPriority.TryGetValue(g.Key, out var priority) ? priority : 100)
+            .ThenBy(g => g.Key)
             .Select(g => new OrganizationGroup(
                 g.Key,
                 g.First().Model.OrgLogoUrl,
-                new ObservableCollection<ModelItemViewModel>(g.OrderBy(m => m.Model.DisplayName))))
+                new ObservableCollection<ModelItemViewModel>(g.OrderBy(m => m.Model.SizeBytes))))
             .ToList();
 
         GroupedModels = new ObservableCollection<OrganizationGroup>(groups);
@@ -396,8 +405,8 @@ public partial class ModelItemViewModel : ObservableObject
         {
             if (!IsLoading) return "";
 
-            // Get selected backend from parent (user's choice from Settings)
-            var backend = _parent.GetSelectedBackendNameAsync().GetAwaiter().GetResult();
+            // Use the recommended backend from the service (no async wait)
+            var backend = _parent.SelectedBackendName;
 
             if (LoadingProgress > 0 && LoadingProgress < 100)
                 return $"Loading on {backend}... {LoadingProgress:0}%";

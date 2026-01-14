@@ -104,9 +104,10 @@ public class HardwareDetectionService : IHardwareDetectionService
             info.HasCuda = !string.IsNullOrEmpty(info.GpuName) &&
                            info.GpuName.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase);
 
-            // DirectML is available on Windows 10+ with any GPU
-            info.HasDirectML = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-                               Environment.OSVersion.Version.Major >= 10;
+            // Vulkan support is represented by the Vulkan backend package, 
+            // but we check if we have a valid non-basic GPU to recommend it
+            info.HasVulkan = !string.IsNullOrEmpty(info.GpuName) &&
+                              !info.GpuName.Contains("Microsoft Basic", StringComparison.OrdinalIgnoreCase);
 
             // NPU detection (limited - check for Intel NPU or Qualcomm)
             try
@@ -125,8 +126,8 @@ public class HardwareDetectionService : IHardwareDetectionService
             if (info.HasCuda)
                 info.AvailableBackends.Add(ExecutionBackend.Cuda);
 
-            if (info.HasDirectML)
-                info.AvailableBackends.Add(ExecutionBackend.DirectML);
+            if (info.HasVulkan)
+                info.AvailableBackends.Add(ExecutionBackend.Vulkan);
 
             if (info.HasNpu)
                 info.AvailableBackends.Add(ExecutionBackend.Npu);
@@ -172,13 +173,21 @@ public class HardwareDetectionService : IHardwareDetectionService
         if (info.HasCuda)
             return ExecutionBackend.Cuda;
 
+        // Vulkan is often better for Intel Arc and modern AMD GPUs
+        if (info.AvailableBackends.Contains(ExecutionBackend.Vulkan) &&
+            (info.GpuName?.Contains("Arc", StringComparison.OrdinalIgnoreCase) == true ||
+             info.GpuName?.Contains("Radeon", StringComparison.OrdinalIgnoreCase) == true))
+        {
+            return ExecutionBackend.Vulkan;
+        }
+
         // NPU if available (power efficient)
         if (info.HasNpu)
             return ExecutionBackend.Npu;
 
-        // DirectML for AMD/Intel GPUs on Windows
-        if (info.HasDirectML && info.GpuMemoryBytes > 2L * 1024 * 1024 * 1024)
-            return ExecutionBackend.DirectML;
+        // Vulkan for AMD/Intel GPUs on Windows
+        if (info.HasVulkan && info.GpuMemoryBytes > 2L * 1024 * 1024 * 1024)
+            return ExecutionBackend.Vulkan;
 
         // Fallback to CPU
         return ExecutionBackend.Cpu;
@@ -194,13 +203,13 @@ public class HardwareDetectionService : IHardwareDetectionService
         if (!string.IsNullOrEmpty(info.GpuName))
             parts.Add($"GPU: {info.GpuName}");
 
-        if (info.HasCuda)
-            parts.Add("CUDA ✓");
-        else if (info.HasDirectML)
-            parts.Add("DirectML ✓");
+        var backends = new List<string>();
+        if (info.HasCuda) backends.Add("CUDA");
+        if (info.HasVulkan) backends.Add("Vulkan");
+        if (info.HasNpu) backends.Add("NPU");
 
-        if (info.HasNpu)
-            parts.Add("NPU ✓");
+        if (backends.Count > 0)
+            parts.Add(string.Join(" / ", backends) + " ✓");
 
         return string.Join(" | ", parts);
     }
@@ -264,6 +273,16 @@ public class HardwareDetectionService : IHardwareDetectionService
             return 16L * 1024 * 1024 * 1024; // 16GB
         if (gpuName.Contains("6700", StringComparison.OrdinalIgnoreCase))
             return 12L * 1024 * 1024 * 1024; // 12GB
+
+        // Intel ARC series
+        if (gpuName.Contains("Arc", StringComparison.OrdinalIgnoreCase))
+        {
+            if (gpuName.Contains("770", StringComparison.OrdinalIgnoreCase)) return 16L * 1024 * 1024 * 1024;
+            if (gpuName.Contains("750", StringComparison.OrdinalIgnoreCase)) return 8L * 1024 * 1024 * 1024;
+            if (gpuName.Contains("580", StringComparison.OrdinalIgnoreCase)) return 8L * 1024 * 1024 * 1024;
+            if (gpuName.Contains("380", StringComparison.OrdinalIgnoreCase)) return 6L * 1024 * 1024 * 1024;
+            return 8L * 1024 * 1024 * 1024; // Default guess for other Arc cards
+        }
 
         // For unknown GPUs, use heuristic: if WMI reports exactly 4GB (overflow), 
         // assume 8GB as a conservative middle-ground estimate

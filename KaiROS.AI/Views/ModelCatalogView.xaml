@@ -202,6 +202,10 @@
                                                         <Run Text="💾"/><Run Text="{Binding Model.SizeText}"/>
                                                     </TextBlock>
                                                 </StackPanel>
+                                                <!-- Error Message -->
+                                                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}" 
+                                                         FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap"
+                                                         Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVis}}"/>
                                             </StackPanel>
                                             
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal" Margin="20,0,0,0">
@@ -330,6 +334,11 @@
                                                             <TextBlock Text="{Binding DownloadProgress, StringFormat={}{0:F1}%}" HorizontalAlignment="Right"
                                                                        Margin="0,10,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                         </Grid>
+
+                                                        <!-- Error Message -->
+                                                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}" 
+                                                                 FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap"
+                                                                 Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVis}}"/>
                                                     </StackPanel>
                                                     
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal" Margin="20,0,0,0">
