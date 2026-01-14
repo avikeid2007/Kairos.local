@@ -3,18 +3,25 @@
  Copy-Item "Package.appxmanifest" -Destination "msix-publish\AppxManifest.xml" -Force
 
  $makeappx = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\makeappx.exe"
-& $makeappx pack /d "msix-publish" /p "..\KaiROS.AI-1.0.4.msix" /o
+& $makeappx pack /d "msix-publish" /p "..\KaiROS.AI-1.0.6.msix" /o
  
  $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"
- $signtool sign /fd SHA256 /sha1 $cert.Thumbprint /t http://timestamp.digicert.com "f:\Kairos.local\KaiROS.AI-1.0.4.msix"
+& $signtool sign /fd SHA256 /f "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.pfx" /p "KaiROS123" /t http://timestamp.digicert.com "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.AI-1.0.6.msix"
+
+Import-Certificate -FilePath "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.cer" -CertStoreLocation "Cert:\LocalMachine\TrustedPeople"
+Add-AppxPackage -Path "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.AI-1.0.6.msix"
+
+
 
 for Installation :
 
-Export-Certificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" -FilePath "f:\KairodWpf\Kairos.local\KaiROS.cer" -Type CERT
-Import-Certificate -FilePath "f:\KairodWpf\Kairos.local\KaiROS.cer" -CertStoreLocation "Cert:\LocalMachine\TrustedPeople"
+Export-Certificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" -FilePath "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.cer" -Type CERT
+Import-Certificate -FilePath "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.cer" -CertStoreLocation "Cert:\LocalMachine\TrustedPeople"
 for Deployment :
 
-Export-Certificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" -FilePath "f:\KairodWpf\Kairos.local\KaiROS.cer" -Type CERT
-Import-Certificate -FilePath "f:\KairodWpf\Kairos.local\KaiROS.cer" -CertStoreLocation "Cert:\LocalMachine\TrustedPeople"   
+Export-Certificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" -FilePath "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.cer" -Type CERT
+Import-Certificate -FilePath "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.cer" -CertStoreLocation "Cert:\LocalMachine\TrustedPeople"   
 
-Add-AppxPackage -Path "f:\KairodWpf\Kairos.local\KaiROS.AI-1.0.4.msix"
+
+
+& $signtool sign /fd SHA256 /f "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.pfx" /p "KaiROS123" /t http://timestamp.digicert.com "c:\Users\User\source\repos\avikeid2007\Kairos.local\KaiROS.AI-1.0.6.msix"
