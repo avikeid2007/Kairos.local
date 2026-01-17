@@ -250,6 +250,9 @@ public class ModelManagerService : IModelManagerService
                 {
                     System.Diagnostics.Debug.WriteLine($"[KaiROS] Attempting to load with {layers} GPU layers...");
 
+                    // Strict timeout to prevent hanging on Intel drivers
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+
                     await Task.Run(() =>
                     {
                         progress?.Report(20);
@@ -265,11 +268,14 @@ public class ModelManagerService : IModelManagerService
                         ModelLoadProgress?.Invoke(this, 30);
 
                         // This is the heavy operation - loading weights
+                        // We run this on a separate thread but if it hangs, we can't easily kill it 
+                        // without process termination, but we can at least stop waiting and fallback.
+                        // The hung thread will eventually be cleaned up by the OS or when app closes.
                         _loadedWeights = LLamaWeights.LoadFromFile(parameters);
 
                         progress?.Report(90);
                         ModelLoadProgress?.Invoke(this, 90);
-                    });
+                    }, cts.Token).WaitAsync(TimeSpan.FromSeconds(45));
 
                     // Success!
                     _currentGpuLayers = layers;
