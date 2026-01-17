@@ -367,21 +367,61 @@
                                                         <StackPanel Orientation="Horizontal" Visibility="{Binding ShowLoadButton, Converter={StaticResource BoolToVis}}">
                                                             <Button Command="{Binding SetActiveCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
                                                                     IsEnabled="{Binding IsActive, Converter={StaticResource InverseBool}}">
-                                                                <TextBlock>
-                                                                    <TextBlock.Style>
-                                                                        <Style TargetType="TextBlock">
-                                                                            <Setter Property="Text" Value="Load Model"/>
-                                                                            <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                                                    <Setter Property="Text" Value="Loading..."/>
-                                                                                </DataTrigger>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <!-- Loading Spinner -->
+                                                                    <ProgressBar Width="12" Height="12" IsIndeterminate="True" 
+                                                                                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                                                                                 Margin="0,0,8,0"
+                                                                                 BorderThickness="2"
+                                                                                 Foreground="White">
+                                                                        <ProgressBar.Style>
+                                                                            <Style TargetType="ProgressBar">
+                                                                                <Setter Property="Template">
+                                                                                    <Setter.Value>
+                                                                                        <ControlTemplate TargetType="ProgressBar">
+                                                                                            <Grid>
+                                                                                                <Viewbox>
+                                                                                                    <Canvas Width="20" Height="20">
+                                                                                                        <Path Data="M10,2 A8,8 0 1,1 2,10" Stroke="{TemplateBinding Foreground}" StrokeThickness="3" StrokeEndLineCap="Round">
+                                                                                                            <Path.RenderTransform>
+                                                                                                                 <RotateTransform CenterX="10" CenterY="10"/>
+                                                                                                            </Path.RenderTransform>
+                                                                                                            <Path.Triggers>
+                                                                                                                <EventTrigger RoutedEvent="Loaded">
+                                                                                                                    <BeginStoryboard>
+                                                                                                                        <Storyboard>
+                                                                                                                            <DoubleAnimation Storyboard.TargetProperty="(Path.RenderTransform).(RotateTransform.Angle)" From="0" To="360" Duration="0:0:1" RepeatBehavior="Forever"/>
+                                                                                                                        </Storyboard>
+                                                                                                                    </BeginStoryboard>
+                                                                                                                </EventTrigger>
+                                                                                                            </Path.Triggers>
+                                                                                                        </Path>
+                                                                                                    </Canvas>
+                                                                                                </Viewbox>
+                                                                                            </Grid>
+                                                                                        </ControlTemplate>
+                                                                                    </Setter.Value>
+                                                                                </Setter>
+                                                                            </Style>
+                                                                        </ProgressBar.Style>
+                                                                    </ProgressBar>
+                                                                    
+                                                                    <TextBlock>
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Text" Value="Load Model"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                                        <Setter Property="Text" Value="Loading..."/>
+                                                                                    </DataTrigger>
                                                                                 <DataTrigger Binding="{Binding IsActive}" Value="True">
                                                                                     <Setter Property="Text" Value="Active ✓"/>
                                                                                 </DataTrigger>
                                                                             </Style.Triggers>
                                                                         </Style>
                                                                     </TextBlock.Style>
-                                                                </TextBlock>
+                                                                    </TextBlock>
+                                                                </StackPanel>
                                                             </Button>
                                                             <Button Command="{Binding DeleteCommand}" Style="{StaticResource IconButton}" Content="🗑" ToolTip="Delete model"/>
                                                         </StackPanel>

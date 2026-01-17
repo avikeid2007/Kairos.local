@@ -105,9 +105,14 @@ public class HardwareDetectionService : IHardwareDetectionService
                            info.GpuName.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase);
 
             // Vulkan support is represented by the Vulkan backend package, 
-            // but we check if we have a valid non-basic GPU to recommend it
+            // but we check if we have a valid non-basic discrete GPU to recommend it.
+            // Explicitly exclude Intel Integrated Graphics (Iris, UHD, HD) as they are unstable with llama.cpp Vulkan backend.
+            bool isIntelIntegrated = info.GpuName?.Contains("Intel", StringComparison.OrdinalIgnoreCase) == true &&
+                                     info.GpuName?.Contains("Arc", StringComparison.OrdinalIgnoreCase) == false;
+
             info.HasVulkan = !string.IsNullOrEmpty(info.GpuName) &&
-                              !info.GpuName.Contains("Microsoft Basic", StringComparison.OrdinalIgnoreCase);
+                              !info.GpuName.Contains("Microsoft Basic", StringComparison.OrdinalIgnoreCase) &&
+                              !isIntelIntegrated;
 
             // NPU detection (limited - check for Intel NPU or Qualcomm)
             try
@@ -185,8 +190,11 @@ public class HardwareDetectionService : IHardwareDetectionService
         if (info.HasNpu)
             return ExecutionBackend.Npu;
 
-        // Vulkan for AMD/Intel GPUs on Windows
-        if (info.HasVulkan && info.GpuMemoryBytes > 2L * 1024 * 1024 * 1024)
+        // Vulkan for AMD/Intel Arc GPUs on Windows
+        // Explicitly check for Arc again to be double sure we don't recommend Vulkan for Iris Xe here
+        if (info.HasVulkan && info.GpuMemoryBytes > 2L * 1024 * 1024 * 1024 &&
+            (info.GpuName?.Contains("Arc", StringComparison.OrdinalIgnoreCase) == true ||
+             info.GpuName?.Contains("Radeon", StringComparison.OrdinalIgnoreCase) == true))
             return ExecutionBackend.Vulkan;
 
         // Fallback to CPU
