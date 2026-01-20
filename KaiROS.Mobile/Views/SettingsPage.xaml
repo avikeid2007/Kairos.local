@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:KaiROS.Mobile.ViewModels"
+             x:Class="KaiROS.Mobile.Views.SettingsPage"
+             x:DataType="viewmodels:SettingsViewModel"
+             Title="Settings"
+             BackgroundColor="#0D0D1A"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView Padding="16">
+        <VerticalStackLayout Spacing="16">
+            
+            <!-- Header -->
+            <HorizontalStackLayout Spacing="12" Margin="4,8,0,16">
+                <Image Source="logo.png"
+                       HeightRequest="40"
+                       WidthRequest="40"/>
+                <Label Text="Settings"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+
+            <!-- System Prompt Section -->
+            <Border Padding="1.5"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="Transparent">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                        <GradientStop Color="#3B82F6" Offset="0.5"/>
+                        <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                
+                <Border BackgroundColor="#12122A"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="System Prompt"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                        <Label Text="Customize the AI's behavior and personality"
+                               FontSize="12"
+                               TextColor="#9090B0"/>
+                        
+                        <Border BackgroundColor="#1E1E3A"
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="#2A2A50"
+                                Padding="12">
+                            <Editor Text="{Binding SystemPrompt}"
+                                    TextColor="White"
+                                    PlaceholderColor="#6060A0"
+                                    BackgroundColor="Transparent"
+                                    HeightRequest="100"
+                                    FontSize="14"/>
+                        </Border>
+                        
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="Transparent"
+                                HeightRequest="40"
+                                HorizontalOptions="End">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                    <GradientStop Color="#9333EA" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Label Text="Save Prompt"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   Padding="16,0">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SaveSystemPromptCommand}"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+            </Border>
+
+            <!-- Hardware Info Section -->
+            <Border Padding="1.5"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="Transparent">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                        <GradientStop Color="#3B82F6" Offset="0.5"/>
+                        <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                
+                <Border BackgroundColor="#12122A"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Hardware Info"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                        
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                            <Label Text="📱 Device:" TextColor="#9090B0" FontSize="13"/>
+                            <Label Grid.Column="1" Text="{Binding DeviceModel}" TextColor="White" FontSize="13" Margin="8,0,0,0"/>
+                            
+                            <Label Grid.Row="1" Text="🤖 OS:" TextColor="#9090B0" FontSize="13"/>
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding OsVersion}" TextColor="White" FontSize="13" Margin="8,0,0,0"/>
+                            
+                            <Label Grid.Row="2" Text="💾 Memory:" TextColor="#9090B0" FontSize="13"/>
+                            <Label Grid.Row="2" Grid.Column="1" Text="{Binding TotalMemory}" TextColor="White" FontSize="13" Margin="8,0,0,0"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </Border>
+
+            <!-- About Section -->
+            <Border Padding="1.5"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="Transparent">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                        <GradientStop Color="#3B82F6" Offset="0.5"/>
+                        <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                
+                <Border BackgroundColor="#12122A"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="About"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                        
+                        <HorizontalStackLayout Spacing="12">
+                            <Image Source="logo.png"
+                                   HeightRequest="48"
+                                   WidthRequest="48"/>
+                            <VerticalStackLayout VerticalOptions="Center">
+                                <Label Text="KaiROS AI"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="White"/>
+                                <Label Text="{Binding AppVersion, StringFormat='Version {0}'}"
+                                       FontSize="12"
+                                       TextColor="#9090B0"/>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+                        
+                        <Label Text="Run powerful AI models locally on your device. No cloud required, complete privacy."
+                               FontSize="13"
+                               TextColor="#9090B0"
+                               LineBreakMode="WordWrap"/>
+                        
+                        <Label Text="Powered by LLamaSharp"
+                               FontSize="12"
+                               TextColor="#7070A0"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Border>
+
+            <!-- Feedback Section -->
+            <Border Padding="1.5"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="Transparent">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                        <GradientStop Color="#3B82F6" Offset="0.5"/>
+                        <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                
+                <Border BackgroundColor="#12122A"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Feedback &amp; Support"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                        
+                        <HorizontalStackLayout Spacing="10">
+                            <!-- GitHub Button -->
+                            <Border StrokeShape="RoundRectangle 10"
+                                    Stroke="Transparent"
+                                    HeightRequest="40"
+                                    HorizontalOptions="Start">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#3B82F6" Offset="0.0"/>
+                                        <GradientStop Color="#6366F1" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Label Text="⭐ GitHub"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       Padding="16,0">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding OpenGitHubCommand}"/>
+                                    </Label.GestureRecognizers>
+                                </Label>
+                            </Border>
+                            
+                            <!-- Feedback Button -->
+                            <Border StrokeShape="RoundRectangle 10"
+                                    Stroke="Transparent"
+                                    HeightRequest="40"
+                                    HorizontalOptions="Start">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                        <GradientStop Color="#9333EA" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Label Text="✉ Feedback"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       Padding="16,0">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding OpenFeedbackCommand}"/>
+                                    </Label.GestureRecognizers>
+                                </Label>
+                            </Border>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </Border>
+
+            <!-- Bottom padding -->
+            <BoxView HeightRequest="20"/>
+            
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

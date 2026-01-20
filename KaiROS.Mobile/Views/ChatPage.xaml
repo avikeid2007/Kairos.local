@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:KaiROS.Mobile.ViewModels"
+             xmlns:models="clr-namespace:KaiROS.Mobile.Models"
+             x:Class="KaiROS.Mobile.Views.ChatPage"
+             x:DataType="viewmodels:ChatViewModel"
+             Title="Chat"
+             BackgroundColor="#0D0D1A"
+             Shell.NavBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        
+        <!-- Header with gradient border effect -->
+        <Border Grid.Row="0"
+                Margin="16,12"
+                Padding="1.5"
+                StrokeShape="RoundRectangle 14"
+                Stroke="Transparent">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                    <GradientStop Color="#3B82F6" Offset="0.5"/>
+                    <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            
+            <Border BackgroundColor="#12122A"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    Padding="14,10">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    
+                    <!-- New Chat Button with Gradient -->
+                    <Border HeightRequest="32"
+                            WidthRequest="32"
+                            StrokeShape="RoundRectangle 8"
+                            Stroke="Transparent">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                <GradientStop Color="#3B82F6" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Label Text="+"
+                               FontSize="18"
+                               TextColor="White"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ClearChatCommand}"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </Border>
+                    
+                    <!-- Title -->
+                    <Label Grid.Column="1"
+                           Text="KaiROS AI"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                    
+
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="1"
+                BackgroundColor="#15152A"
+                Padding="16,8"
+                Stroke="Transparent">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <HorizontalStackLayout Spacing="8">
+                    <Ellipse Fill="{Binding IsModelLoaded, Converter={StaticResource BoolToStatusColorConverter}}"
+                             HeightRequest="8"
+                             WidthRequest="8"
+                             VerticalOptions="Center"/>
+                    <Label Text="{Binding StatusText}"
+                           FontSize="12"
+                           TextColor="#9090B0"
+                           VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+                
+                <Label Grid.Column="2"
+                       Text="{Binding StatsText}"
+                       FontSize="11"
+                       TextColor="#7070A0"
+                       VerticalOptions="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Chat Messages -->
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding Messages}"
+                        Margin="12,8"
+                        ItemsUpdatingScrollMode="KeepLastItemInView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ChatMessage">
+                    <Grid Margin="0,6">
+                        
+                        <!-- User Message with gradient fill -->
+                        <Border HorizontalOptions="End"
+                                MaximumWidthRequest="280"
+                                Padding="14,10"
+                                StrokeShape="RoundRectangle 18,18,4,18"
+                                Stroke="Transparent"
+                                IsVisible="{Binding Role, Converter={StaticResource RoleToUserVisibilityConverter}}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#3B82F6" Offset="0.0"/>
+                                    <GradientStop Color="#8B5CF6" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Label Text="{Binding Content}"
+                                   FontSize="14"
+                                   TextColor="White"
+                                   LineBreakMode="WordWrap"/>
+                        </Border>
+                        
+                        <!-- Assistant Message with gradient border -->
+                        <Border HorizontalOptions="Start"
+                                MaximumWidthRequest="300"
+                                Padding="1.5"
+                                StrokeShape="RoundRectangle 4,18,18,18"
+                                Stroke="Transparent"
+                                IsVisible="{Binding Role, Converter={StaticResource RoleToAssistantVisibilityConverter}}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                    <GradientStop Color="#3B82F6" Offset="0.5"/>
+                                    <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            
+                            <Border Padding="14,10"
+                                    StrokeShape="RoundRectangle 2,16,16,16"
+                                    BackgroundColor="#12122A"
+                                    Stroke="Transparent">
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding Content}"
+                                           FontSize="14"
+                                           TextColor="#E8E8F0"
+                                           LineBreakMode="WordWrap"/>
+                                    
+                                    <!-- Typing dots -->
+                                    <HorizontalStackLayout Spacing="4" 
+                                                           IsVisible="{Binding IsStreaming}"
+                                                           Margin="0,6,0,0">
+                                        <Ellipse Fill="#7B2CBF" HeightRequest="6" WidthRequest="6"/>
+                                        <Ellipse Fill="#7B2CBF" HeightRequest="6" WidthRequest="6" Opacity="0.6"/>
+                                        <Ellipse Fill="#7B2CBF" HeightRequest="6" WidthRequest="6" Opacity="0.3"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            
+            <!-- Empty State -->
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" 
+                                     HorizontalOptions="Center"
+                                     Spacing="12"
+                                     Padding="40">
+                    <Label Text="🤖"
+                           FontSize="48"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Ask KaiROS anything..."
+                           FontSize="16"
+                           TextColor="#7070A0"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Load a model from Models tab"
+                           FontSize="13"
+                           TextColor="#5050A0"
+                           HorizontalOptions="Center"
+                           IsVisible="{Binding IsModelLoaded, Converter={StaticResource InvertBoolConverter}}"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+        <!-- Input Area with gradient border -->
+        <Border Grid.Row="3"
+                BackgroundColor="#15152A"
+                Padding="12,12"
+                Stroke="Transparent">
+            <Grid ColumnDefinitions="*,Auto">
+                
+                <!-- Input Field with gradient border -->
+                <Border Padding="1.5"
+                        StrokeShape="RoundRectangle 24"
+                        Stroke="Transparent">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                            <GradientStop Color="#3B82F6" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    
+                    <Border BackgroundColor="#1E1E3A"
+                            StrokeShape="RoundRectangle 22"
+                            Stroke="Transparent"
+                            Padding="16,0"
+                            HeightRequest="44">
+                        <Entry Placeholder="Ask KaiROS anything..."
+                               PlaceholderColor="#6060A0"
+                               Text="{Binding UserInput}"
+                               TextColor="White"
+                               ReturnCommand="{Binding SendMessageCommand}"
+                               IsEnabled="{Binding IsModelLoaded}"
+                               BackgroundColor="Transparent"
+                               FontSize="14"
+                               VerticalOptions="Center"/>
+                    </Border>
+                </Border>
+                
+                <!-- Send Button with gradient fill -->
+                <Border Grid.Column="1"
+                        HeightRequest="44"
+                        WidthRequest="44"
+                        Margin="10,0,0,0"
+                        StrokeShape="RoundRectangle 22"
+                        Stroke="Transparent"
+                        IsVisible="{Binding IsGenerating, Converter={StaticResource InvertBoolConverter}}">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                            <GradientStop Color="#3B82F6" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Label Text="▶"
+                           FontSize="16"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SendMessageCommand}"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Border>
+                
+                <!-- Stop Button -->
+                <Border Grid.Column="1"
+                        HeightRequest="44"
+                        WidthRequest="44"
+                        StrokeShape="RoundRectangle 22"
+                        Stroke="Transparent"
+                        BackgroundColor="#EF4444"
+                        Margin="10,0,0,0"
+                        IsVisible="{Binding IsGenerating}">
+                    <Label Text="■"
+                           FontSize="12"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding StopGenerationCommand}"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</ContentPage>

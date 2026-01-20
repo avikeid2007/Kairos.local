@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="KaiROS.Mobile.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:KaiROS.Mobile.Views"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarBackgroundColor="#12122A"
+    Shell.TabBarTitleColor="#7B2CBF"
+    Shell.TabBarUnselectedColor="#6B6B8D"
+    Shell.TabBarForegroundColor="#7B2CBF"
+    Title="KaiROS AI">
+
+    <!-- TabBar Navigation - Models is first (default landing page) -->
+    <TabBar>
+        <ShellContent 
+            Title="Models"
+            Route="Models"
+            Icon="icon_models.svg"
+            ContentTemplate="{DataTemplate views:ModelSelectionPage}"/>
+        
+        <ShellContent 
+            Title="Chat"
+            Route="Chat"
+            Icon="icon_chat.svg"
+            ContentTemplate="{DataTemplate views:ChatPage}"/>
+        
+        <ShellContent 
+            Title="Settings"
+            Route="Settings"
+            Icon="icon_settings.svg"
+            ContentTemplate="{DataTemplate views:SettingsPage}"/>
+    </TabBar>
+
+</Shell>

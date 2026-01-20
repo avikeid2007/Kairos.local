@@ -5,14 +5,15 @@
 </p>
 
 <p align="center">
-  <b>A powerful local AI assistant for Windows</b><br>
-  Run LLMs locally with GPU acceleration • No cloud required • Privacy-first
+  <b>A powerful local AI assistant for Windows & Android</b><br>
+  Run LLMs locally on your device • No cloud required • Privacy-first
 </p>
 
 <p align="center">
   <a href="https://github.com/avikeid2007/Kairos.local/releases/latest"><img src="https://img.shields.io/github/v/release/avikeid2007/Kairos.local?style=flat-square&logo=github&label=Download" alt="Download"/></a>
   <img src="https://img.shields.io/badge/.NET-9.0-512BD4?style=flat-square&logo=dotnet" alt=".NET 9"/>
-  <img src="https://img.shields.io/badge/WPF-Desktop-0078D4?style=flat-square&logo=windows" alt="WPF"/>
+  <img src="https://img.shields.io/badge/Windows-Desktop-0078D4?style=flat-square&logo=windows" alt="Windows"/>
+  <img src="https://img.shields.io/badge/Android-Mobile-3DDC84?style=flat-square&logo=android" alt="Android"/>
   <img src="https://img.shields.io/badge/CUDA-12-76B900?style=flat-square&logo=nvidia" alt="CUDA 12"/>
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License"/>
 </p>
@@ -23,15 +24,23 @@
 
 <p align="center">
   <a href="https://github.com/avikeid2007/Kairos.local/releases/latest">
-    <img src="https://img.shields.io/badge/Download_Installer-EXE-blue?style=for-the-badge&logo=windows" alt="Download Installer"/>
+    <img src="https://img.shields.io/badge/Download_Windows-EXE-blue?style=for-the-badge&logo=windows" alt="Download Windows Installer"/>
   </a>
-  <img src="https://img.shields.io/badge/Microsoft_Store-Coming_Soon-orange?style=for-the-badge&logo=microsoft" alt="Microsoft Store"/>
+  <a href="https://apps.microsoft.com/detail/9n0l64zr0znd?hl=en-US&gl=IN" target="_blank">
+      <img src="https://img.shields.io/badge/Microsoft_Store-Get_It_Now-blue?style=for-the-badge&logo=microsoft" alt="Microsoft Store"/>
+  </a>
+  <br>
+  <a href="https://github.com/avikeid2007/Kairos.local/releases/latest">
+    <img src="https://img.shields.io/badge/Download_Android-APK-3DDC84?style=for-the-badge&logo=android" alt="Download Android APK"/>
+  </a>
+  <img src="https://img.shields.io/badge/Play_Store-Coming_Soon-orange?style=for-the-badge&logo=google-play" alt="Play Store"/>
 </p>
 
-- **[Download Latest Release](https://github.com/avikeid2007/Kairos.local/releases/latest)** - Self-contained Windows installer
-- **Microsoft Store** - 🔜 Coming Soon!
+- **[Download Latest Release](https://github.com/avikeid2007/Kairos.local/releases/latest)** - Windows Installer & Android APK
+- **Microsoft Store** - [Get it now](https://apps.microsoft.com/detail/9n0l64zr0znd?hl=en-US&gl=IN)
+- **Play Store** - 🔜 Coming Soon!
 - No .NET installation required
-- Supports Windows 10/11 (x64)
+- Supports Windows 10/11 (x64) & Android 7.0+
 
 ---
 
@@ -138,6 +147,7 @@ curl -X POST http://localhost:5000/chat/stream \
 ### Prerequisites
 
 - **Windows 10/11** (x64)
+- **Android 7.0+** (API 24+)
 - **.NET 9 SDK** - [Download](https://dotnet.microsoft.com/download/dotnet/9.0)
 - **CUDA Toolkit 12** (optional, for GPU acceleration) - [Download](https://developer.nvidia.com/cuda-downloads)
 
@@ -202,7 +212,7 @@ curl -X POST http://localhost:5000/chat/stream \
 
 ## 🛠️ Tech Stack
 
-- **Framework**: .NET 9 + WPF
+- **Framework**: .NET 9 + WPF (Windows) / MAUI (Android)
 - **LLM Runtime**: [LLamaSharp 0.25.0](https://github.com/SciSharp/LLamaSharp)
 - **MVVM**: [CommunityToolkit.Mvvm 8.4.0](https://github.com/CommunityToolkit/dotnet)
 - **GPU Support**: CUDA 12, DirectML, Vulkan
