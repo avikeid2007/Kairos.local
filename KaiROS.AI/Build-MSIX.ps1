@@ -13,7 +13,7 @@
     The version number for the MSIX package (e.g., 1.0.7)
 
 .EXAMPLE
-    .\Build-MSIX.ps1 -Version 1.0.7
+    .\Build-MSIX.ps1 -Version 1.0.8
 #>
 
 param(

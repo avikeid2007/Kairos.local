@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- KaiROS Modern Dark Theme -->
+    
+    <!-- Background Colors -->
+    <Color x:Key="PageBackgroundColor">#1A1A2E</Color>
+    <Color x:Key="SurfaceColor">#16213E</Color>
+    <Color x:Key="CardBackgroundColor">#0F3460</Color>
+    <Color x:Key="CardBorderColor">#2D2D5A</Color>
+    
+    <!-- Primary Accent Colors -->
+    <Color x:Key="Primary">#7B2CBF</Color>
+    <Color x:Key="PrimaryDark">#5B1E99</Color>
+    <Color x:Key="Secondary">#3B82F6</Color>
+    <Color x:Key="SecondaryDark">#2563EB</Color>
+    <Color x:Key="Tertiary">#E94560</Color>
+    
+    <!-- Gradient Colors -->
+    <Color x:Key="GradientStart">#7B2CBF</Color>
+    <Color x:Key="GradientEnd">#3B82F6</Color>
+    
+    <!-- Status Colors -->
+    <Color x:Key="Success">#10B981</Color>
+    <Color x:Key="Warning">#F59E0B</Color>
+    <Color x:Key="Danger">#EF4444</Color>
+    <Color x:Key="Info">#06B6D4</Color>
+    
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimary">#FFFFFF</Color>
+    <Color x:Key="TextSecondary">#A0AEC0</Color>
+    <Color x:Key="TextMuted">#64748B</Color>
+    
+    <!-- Chat Bubble Colors -->
+    <Color x:Key="UserBubbleStart">#3B82F6</Color>
+    <Color x:Key="UserBubbleEnd">#6366F1</Color>
+    <Color x:Key="AssistantBubble">#1E293B</Color>
+    <Color x:Key="AssistantBubbleGlow">#7B2CBF</Color>
+
+    <!-- Basic Colors -->
+    <Color x:Key="White">White</Color>
+    <Color x:Key="Black">Black</Color>
+    <Color x:Key="OffBlack">#0F0F23</Color>
+    <Color x:Key="Magenta">#D600AA</Color>
+    <Color x:Key="MidnightBlue">#190649</Color>
+    
+    <!-- Dark Theme Text -->
+    <Color x:Key="PrimaryDarkText">#FFFFFF</Color>
+    <Color x:Key="SecondaryDarkText">#A0AEC0</Color>
+    
+    <!-- Gray Scale (Required by Styles.xaml) -->
+    <Color x:Key="Gray100">#F1F5F9</Color>
+    <Color x:Key="Gray200">#E2E8F0</Color>
+    <Color x:Key="Gray300">#CBD5E1</Color>
+    <Color x:Key="Gray400">#94A3B8</Color>
+    <Color x:Key="Gray500">#64748B</Color>
+    <Color x:Key="Gray600">#475569</Color>
+    <Color x:Key="Gray700">#334155</Color>
+    <Color x:Key="Gray800">#1E293B</Color>
+    <Color x:Key="Gray900">#0F172A</Color>
+    <Color x:Key="Gray950">#020617</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+    
+</ResourceDictionary>

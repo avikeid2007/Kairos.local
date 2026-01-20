@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:KaiROS.Mobile.ViewModels"
+             xmlns:models="clr-namespace:KaiROS.Mobile.Models"
+             x:Class="KaiROS.Mobile.Views.ModelSelectionPage"
+             x:DataType="viewmodels:ModelSelectionViewModel"
+             Title="Models"
+             BackgroundColor="#0D0D1A"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*">
+        
+        <!-- Header -->
+        <HorizontalStackLayout Grid.Row="0" 
+                               Padding="20,16"
+                               Spacing="12"
+                               BackgroundColor="#0D0D1A">
+            <Border HeightRequest="32"
+                    WidthRequest="32"
+                    StrokeShape="RoundRectangle 8"
+                    Stroke="#7B2CBF"
+                    StrokeThickness="1.5"
+                    BackgroundColor="#1A1A3E">
+                <Label Text="◆" 
+                       FontSize="14"
+                       TextColor="#7B2CBF"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+            </Border>
+            <Label Text="KaiROS AI"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+
+        <!-- Content -->
+        <ScrollView Grid.Row="1" Padding="16,0,16,16">
+            <VerticalStackLayout Spacing="12">
+                
+                <!-- Section Title -->
+                <Label Text="Available Models"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       Margin="4,8,0,12"/>
+                
+                <!-- Model Cards -->
+                <CollectionView ItemsSource="{Binding Models}"
+                                SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:LLMModelInfo">
+                            
+                            <!-- Outer border for gradient effect -->
+                            <Border Margin="0,6"
+                                    Padding="1.5"
+                                    StrokeShape="RoundRectangle 16"
+                                    Stroke="Transparent"
+                                    StrokeThickness="0">
+                                <!-- Gradient Background -->
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                        <GradientStop Color="#3B82F6" Offset="0.5"/>
+                                        <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                
+                                <!-- Inner card content -->
+                                <Border Padding="16"
+                                        StrokeShape="RoundRectangle 14"
+                                        BackgroundColor="#12122A"
+                                        Stroke="Transparent">
+                                    
+                                    <VerticalStackLayout Spacing="8">
+                                        
+                                        <!-- Model Name + Size Badge -->
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding Name}"
+                                                   FontSize="17"
+                                                   FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   VerticalOptions="Center"/>
+                                            
+                                            <Border Grid.Column="1"
+                                                    BackgroundColor="#7B2CBF"
+                                                    StrokeShape="RoundRectangle 8"
+                                                    Stroke="Transparent"
+                                                    Padding="10,5">
+                                                <HorizontalStackLayout Spacing="4">
+                                                    <Label Text="{Binding FormattedSize}"
+                                                           FontSize="12"
+                                                           FontAttributes="Bold"
+                                                           TextColor="White"/>
+                                                    <Label Text="↓"
+                                                           FontSize="10"
+                                                           TextColor="White"
+                                                           IsVisible="{Binding IsDownloaded, Converter={StaticResource InvertBoolConverter}}"/>
+                                                </HorizontalStackLayout>
+                                            </Border>
+                                        </Grid>
+                                        
+                                        <!-- Description -->
+                                        <Label Text="{Binding Description}"
+                                               FontSize="13"
+                                               TextColor="#9090B0"
+                                               LineBreakMode="WordWrap"/>
+                                        
+                                        <!-- Progress Bar (when downloading) -->
+                                        <VerticalStackLayout IsVisible="{Binding IsDownloading}"
+                                                             Spacing="4"
+                                                             Margin="0,4,0,0">
+                                            <Label FontSize="11" TextColor="#B0B0D0">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="Downloading... "/>
+                                                        <Span Text="{Binding DownloadProgress, StringFormat='{0:P0}'}"/>
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                            <Border HeightRequest="5"
+                                                    StrokeShape="RoundRectangle 2.5"
+                                                    Stroke="Transparent"
+                                                    BackgroundColor="#2A2A50">
+                                                <ProgressBar Progress="{Binding DownloadProgress}"
+                                                             ProgressColor="#3B82F6"
+                                                             BackgroundColor="Transparent"/>
+                                            </Border>
+                                        </VerticalStackLayout>
+                                        
+                                        <!-- RAM + Buttons Row -->
+                                        <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
+                                            
+                                            <!-- RAM Info -->
+                                            <HorizontalStackLayout Spacing="6">
+                                                <Border HeightRequest="22"
+                                                        WidthRequest="22"
+                                                        StrokeShape="RoundRectangle 5"
+                                                        BackgroundColor="#2A2A50"
+                                                        Stroke="Transparent">
+                                                    <Label Text="💾"
+                                                           FontSize="10"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center"/>
+                                                </Border>
+                                                <Label FontSize="12"
+                                                       TextColor="#7070A0"
+                                                       VerticalOptions="Center">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="RAM: "/>
+                                                            <Span Text="{Binding MinRamGB}"/>
+                                                            <Span Text=" GB"/>
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                            </HorizontalStackLayout>
+                                            
+                                            <!-- Action Button -->
+                                            <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                                                
+                                                <!-- Download Button with Gradient -->
+                                                <Border StrokeShape="RoundRectangle 10"
+                                                        Stroke="Transparent"
+                                                        HeightRequest="36"
+                                                        Padding="0"
+                                                        IsVisible="{Binding IsDownloaded, Converter={StaticResource InvertBoolConverter}}">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="#3B82F6" Offset="0.0"/>
+                                                            <GradientStop Color="#6366F1" Offset="1.0"/>
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Label Text="Download ↓"
+                                                           FontSize="12"
+                                                           FontAttributes="Bold"
+                                                           TextColor="White"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center"
+                                                           Padding="14,0">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer 
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ModelSelectionViewModel}}, Path=DownloadModelCommand}"
+                                                                CommandParameter="{Binding .}"/>
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                </Border>
+                                                
+                                                <!-- Load Button with Gradient -->
+                                                <Border StrokeShape="RoundRectangle 10"
+                                                        Stroke="Transparent"
+                                                        HeightRequest="36"
+                                                        Padding="0"
+                                                        IsVisible="{Binding IsDownloaded}">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                                            <GradientStop Color="#9333EA" Offset="1.0"/>
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Label Text="Load ▶"
+                                                           FontSize="12"
+                                                           FontAttributes="Bold"
+                                                           TextColor="White"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center"
+                                                           Padding="14,0">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer 
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ModelSelectionViewModel}}, Path=LoadModelCommand}"
+                                                                CommandParameter="{Binding .}"/>
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                </Border>
+                                                
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                        
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Border>
+                            
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                
+                <!-- Loading -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   Color="#7B2CBF"
+                                   HeightRequest="40"/>
+                
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
