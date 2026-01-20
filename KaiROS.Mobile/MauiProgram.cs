@@ -20,6 +20,14 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+        // Remove Entry underline on Android
+        Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoUnderline", (h, v) =>
+        {
+#if ANDROID
+            h.PlatformView.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Transparent);
+#endif
+        });
+
         // Register Services (Singleton for shared state)
         builder.Services.AddSingleton<MobileLLMService>();
         builder.Services.AddSingleton<ModelDownloadService>();

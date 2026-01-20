@@ -31,8 +31,18 @@ public partial class SettingsViewModel : ObservableObject
         OsVersion = $"Android {DeviceInfo.VersionString}";
         
         // Get available memory
+#if ANDROID
+        var context = Android.App.Application.Context;
+        var activityManager = (Android.App.ActivityManager?)context.GetSystemService(Android.Content.Context.ActivityService);
+        var memoryInfo = new Android.App.ActivityManager.MemoryInfo();
+        activityManager?.GetMemoryInfo(memoryInfo);
+        
+        var totalRamBytes = memoryInfo.TotalMem;
+        TotalMemory = $"{totalRamBytes / (1024 * 1024 * 1024.0):F1} GB";
+#else
         var totalRam = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
         TotalMemory = $"{totalRam / (1024 * 1024 * 1024.0):F1} GB";
+#endif
         
         // Get app version
         AppVersion = AppInfo.VersionString;

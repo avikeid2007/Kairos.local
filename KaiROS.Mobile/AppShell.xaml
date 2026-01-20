@@ -16,16 +16,19 @@
     <TabBar>
         <ShellContent 
             Title="Models"
+            Route="Models"
             Icon="icon_models.svg"
             ContentTemplate="{DataTemplate views:ModelSelectionPage}"/>
         
         <ShellContent 
             Title="Chat"
+            Route="Chat"
             Icon="icon_chat.svg"
             ContentTemplate="{DataTemplate views:ChatPage}"/>
         
         <ShellContent 
             Title="Settings"
+            Route="Settings"
             Icon="icon_settings.svg"
             ContentTemplate="{DataTemplate views:SettingsPage}"/>
     </TabBar>

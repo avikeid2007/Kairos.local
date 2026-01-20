@@ -122,6 +122,9 @@ public partial class ModelSelectionViewModel : ObservableObject
             {
                 StatusText = $"Loaded: {model.Name}";
                 SelectedModel = model;
+                
+                // Navigate to Chat tab
+                await Shell.Current.GoToAsync("//Chat");
             }
             else
             {
@@ -135,8 +138,11 @@ public partial class ModelSelectionViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeleteModel(LLMModelInfo model)
+    private async Task DeleteModelAsync(LLMModelInfo model)
     {
+        var confirm = await Shell.Current.DisplayAlert("Delete Model", $"Are you sure you want to delete {model.Name}?", "Delete", "Cancel");
+        if (!confirm) return;
+
         if (_downloadService.DeleteModel(model))
         {
             StatusText = $"Deleted: {model.Name}";

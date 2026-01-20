@@ -63,19 +63,7 @@
                            HorizontalOptions="Center"
                            VerticalOptions="Center"/>
                     
-                    <!-- Model Badge -->
-                    <Border Grid.Column="2"
-                            BackgroundColor="#1E1E3A"
-                            StrokeShape="RoundRectangle 8"
-                            Stroke="#3B3B6D"
-                            Padding="8,4"
-                            IsVisible="{Binding IsModelLoaded}">
-                        <Label Text="{Binding CurrentModelName}"
-                               FontSize="10"
-                               TextColor="#9090B0"
-                               LineBreakMode="TailTruncation"
-                               MaximumWidthRequest="80"/>
-                    </Border>
+
                 </Grid>
             </Border>
         </Border>

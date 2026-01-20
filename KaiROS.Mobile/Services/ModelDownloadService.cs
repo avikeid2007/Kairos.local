@@ -22,12 +22,12 @@ public class ModelDownloadService
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.UserAgent.Add(
             new ProductInfoHeaderValue("KaiROS-Mobile", "1.0"));
-        
+
         // Store models in app's local data directory
         _modelsDirectory = Path.Combine(
-            FileSystem.Current.AppDataDirectory, 
+            FileSystem.Current.AppDataDirectory,
             "Models");
-        
+
         Directory.CreateDirectory(_modelsDirectory);
     }
 
@@ -41,10 +41,10 @@ public class ModelDownloadService
             using var stream = await FileSystem.OpenAppPackageFileAsync("model_catalog.json");
             using var reader = new StreamReader(stream);
             var json = await reader.ReadToEndAsync();
-            
-            var models = JsonSerializer.Deserialize<List<LLMModelInfo>>(json, 
+
+            var models = JsonSerializer.Deserialize<List<LLMModelInfo>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            
+
             if (models != null)
             {
                 // Check which models are already downloaded
@@ -57,7 +57,7 @@ public class ModelDownloadService
                     }
                 }
             }
-            
+
             return models ?? new List<LLMModelInfo>();
         }
         catch (Exception ex)
@@ -71,7 +71,7 @@ public class ModelDownloadService
     /// Download a model from the specified URL with progress tracking.
     /// </summary>
     public async Task<string?> DownloadModelAsync(
-        LLMModelInfo model, 
+        LLMModelInfo model,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(model.DownloadUrl))
@@ -81,7 +81,7 @@ public class ModelDownloadService
         }
 
         var destinationPath = Path.Combine(_modelsDirectory, model.FileName);
-        
+
         // Check if already downloaded
         if (File.Exists(destinationPath))
         {
@@ -93,13 +93,13 @@ public class ModelDownloadService
         try
         {
             _currentDownloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            
+
             StatusChanged?.Invoke(this, $"Downloading {model.Name}...");
             model.IsDownloading = true;
             model.DownloadProgress = 0;
 
             using var response = await _httpClient.GetAsync(
-                model.DownloadUrl, 
+                model.DownloadUrl,
                 HttpCompletionOption.ResponseHeadersRead,
                 _currentDownloadCts.Token);
 
@@ -109,7 +109,7 @@ public class ModelDownloadService
             var tempPath = destinationPath + ".tmp";
 
             await using var contentStream = await response.Content.ReadAsStreamAsync(_currentDownloadCts.Token);
-            await using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+            await using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 65536, true);
 
             var buffer = new byte[81920]; // 80KB buffer
             long totalBytesRead = 0;
@@ -121,26 +121,34 @@ public class ModelDownloadService
                 await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), _currentDownloadCts.Token);
                 totalBytesRead += bytesRead;
 
-                // Update progress every 500ms to avoid UI flooding
-                if ((DateTime.Now - lastProgressUpdate).TotalMilliseconds > 500)
+                // Update progress every 250ms
+                if ((DateTime.Now - lastProgressUpdate).TotalMilliseconds > 250)
                 {
                     var progress = (double)totalBytesRead / totalBytes;
-                    model.DownloadProgress = progress;
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        model.DownloadProgress = progress;
+                    });
+
                     ProgressChanged?.Invoke(this, progress);
                     lastProgressUpdate = DateTime.Now;
                 }
             }
 
+            // Final update
+            MainThread.BeginInvokeOnMainThread(() => model.DownloadProgress = 1.0);
+
             // Rename temp file to final path
             File.Move(tempPath, destinationPath);
-            
+
             model.LocalPath = destinationPath;
             model.IsDownloading = false;
             model.DownloadProgress = 1.0;
-            
+
             StatusChanged?.Invoke(this, $"Download complete: {model.Name}");
             ProgressChanged?.Invoke(this, 1.0);
-            
+
             return destinationPath;
         }
         catch (OperationCanceledException)
@@ -148,12 +156,12 @@ public class ModelDownloadService
             StatusChanged?.Invoke(this, "Download cancelled");
             model.IsDownloading = false;
             model.DownloadProgress = 0;
-            
+
             // Clean up partial download
             var tempPath = destinationPath + ".tmp";
             if (File.Exists(tempPath))
                 File.Delete(tempPath);
-            
+
             return null;
         }
         catch (Exception ex)

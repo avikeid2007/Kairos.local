@@ -1,9 +1,12 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text.Json.Serialization;
+
 namespace KaiROS.Mobile.Models;
 
 /// <summary>
 /// Information about an LLM model available for download or loaded locally.
 /// </summary>
-public class LLMModelInfo
+public partial class LLMModelInfo : ObservableObject
 {
     public string Name { get; set; } = string.Empty;
     public string FileName { get; set; } = string.Empty;
@@ -11,11 +14,19 @@ public class LLMModelInfo
     public long SizeBytes { get; set; }
     public string DownloadUrl { get; set; } = string.Empty;
     public int MinRamGB { get; set; } = 2;
-    public string? LocalPath { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDownloaded))]
+    private string? _localPath;
+
     public bool IsDownloaded => !string.IsNullOrEmpty(LocalPath) && File.Exists(LocalPath);
-    public double DownloadProgress { get; set; }
-    public bool IsDownloading { get; set; }
-    
+
+    [ObservableProperty]
+    private double _downloadProgress;
+
+    [ObservableProperty]
+    private bool _isDownloading;
+
     /// <summary>
     /// Formatted size string for display (e.g., "1.2 GB")
     /// </summary>

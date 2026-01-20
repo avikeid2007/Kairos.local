@@ -16,18 +16,9 @@
                                Padding="20,16"
                                Spacing="12"
                                BackgroundColor="#0D0D1A">
-            <Border HeightRequest="32"
-                    WidthRequest="32"
-                    StrokeShape="RoundRectangle 8"
-                    Stroke="#7B2CBF"
-                    StrokeThickness="1.5"
-                    BackgroundColor="#1A1A3E">
-                <Label Text="◆" 
-                       FontSize="14"
-                       TextColor="#7B2CBF"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center"/>
-            </Border>
+            <Image Source="logo.png"
+                   HeightRequest="36"
+                   WidthRequest="36"/>
             <Label Text="KaiROS AI"
                    FontSize="20"
                    FontAttributes="Bold"
@@ -172,21 +163,45 @@
                                                             <GradientStop Color="#6366F1" Offset="1.0"/>
                                                         </LinearGradientBrush>
                                                     </Border.Background>
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer 
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ModelSelectionViewModel}}, Path=DownloadModelCommand}"
+                                                            CommandParameter="{Binding .}"/>
+                                                    </Border.GestureRecognizers>
                                                     <Label Text="Download ↓"
                                                            FontSize="12"
                                                            FontAttributes="Bold"
                                                            TextColor="White"
                                                            HorizontalOptions="Center"
                                                            VerticalOptions="Center"
-                                                           Padding="14,0">
-                                                        <Label.GestureRecognizers>
-                                                            <TapGestureRecognizer 
-                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ModelSelectionViewModel}}, Path=DownloadModelCommand}"
-                                                                CommandParameter="{Binding .}"/>
-                                                        </Label.GestureRecognizers>
-                                                    </Label>
+                                                           Padding="14,0"/>
                                                 </Border>
                                                 
+                                                <!-- Delete Button -->
+                                                <Border StrokeShape="RoundRectangle 10"
+                                                        Stroke="Transparent"
+                                                        HeightRequest="36"
+                                                        WidthRequest="40"
+                                                        Padding="0"
+                                                        IsVisible="{Binding IsDownloaded}">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="#991B1B" Offset="0.0"/>
+                                                            <GradientStop Color="#DC2626" Offset="1.0"/>
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer 
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ModelSelectionViewModel}}, Path=DeleteModelCommand}"
+                                                            CommandParameter="{Binding .}"/>
+                                                    </Border.GestureRecognizers>
+                                                    <Label Text="🗑"
+                                                           FontSize="16"
+                                                           TextColor="White"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center"/>
+                                                </Border>
+
                                                 <!-- Load Button with Gradient -->
                                                 <Border StrokeShape="RoundRectangle 10"
                                                         Stroke="Transparent"
@@ -199,19 +214,18 @@
                                                             <GradientStop Color="#9333EA" Offset="1.0"/>
                                                         </LinearGradientBrush>
                                                     </Border.Background>
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer 
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ModelSelectionViewModel}}, Path=LoadModelCommand}"
+                                                            CommandParameter="{Binding .}"/>
+                                                    </Border.GestureRecognizers>
                                                     <Label Text="Load ▶"
                                                            FontSize="12"
                                                            FontAttributes="Bold"
                                                            TextColor="White"
                                                            HorizontalOptions="Center"
                                                            VerticalOptions="Center"
-                                                           Padding="14,0">
-                                                        <Label.GestureRecognizers>
-                                                            <TapGestureRecognizer 
-                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ModelSelectionViewModel}}, Path=LoadModelCommand}"
-                                                                CommandParameter="{Binding .}"/>
-                                                        </Label.GestureRecognizers>
-                                                    </Label>
+                                                           Padding="14,0"/>
                                                 </Border>
                                                 
                                             </HorizontalStackLayout>

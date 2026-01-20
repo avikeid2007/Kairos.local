@@ -13,17 +13,9 @@
             
             <!-- Header -->
             <HorizontalStackLayout Spacing="12" Margin="4,8,0,16">
-                <Border HeightRequest="32"
-                        WidthRequest="32"
-                        StrokeShape="RoundRectangle 8"
-                        Stroke="#7B2CBF"
-                        BackgroundColor="#1A1A3E">
-                    <Label Text="⚙" 
-                           FontSize="16"
-                           TextColor="#7B2CBF"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center"/>
-                </Border>
+                <Image Source="logo.png"
+                       HeightRequest="40"
+                       WidthRequest="40"/>
                 <Label Text="Settings"
                        FontSize="22"
                        FontAttributes="Bold"
@@ -153,22 +145,9 @@
                                TextColor="White"/>
                         
                         <HorizontalStackLayout Spacing="12">
-                            <Border HeightRequest="48"
-                                    WidthRequest="48"
-                                    StrokeShape="RoundRectangle 12"
-                                    Stroke="Transparent">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
-                                        <GradientStop Color="#3B82F6" Offset="1.0"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
-                                <Label Text="◆"
-                                       FontSize="24"
-                                       TextColor="White"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center"/>
-                            </Border>
+                            <Image Source="logo.png"
+                                   HeightRequest="48"
+                                   WidthRequest="48"/>
                             <VerticalStackLayout VerticalOptions="Center">
                                 <Label Text="KaiROS AI"
                                        FontSize="16"
