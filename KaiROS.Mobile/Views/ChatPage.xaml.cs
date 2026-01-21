@@ -17,6 +17,7 @@ public partial class ChatPage : ContentPage
         if (BindingContext is ChatViewModel vm)
         {
             vm.UpdateModelStatus();
+            _ = vm.InitializeAsync();
         }
     }
 }

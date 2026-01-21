@@ -15,8 +15,8 @@ public class MobileLLMService : IDisposable
 {
     // Mobile-optimized: smaller context than desktop (512 vs 8192)
     private const uint MOBILE_CONTEXT_SIZE = 512;
-    private const int MAX_TOKENS = 128;
-    
+    private const int MAX_TOKENS = 512;
+
     private LLamaWeights? _weights;
     private LLamaContext? _context;
     private InteractiveExecutor? _executor;
@@ -46,7 +46,7 @@ public class MobileLLMService : IDisposable
         try
         {
             StatusChanged?.Invoke(this, "Loading model...");
-            
+
             // Unload any existing model first
             UnloadModel();
 
@@ -67,7 +67,7 @@ public class MobileLLMService : IDisposable
 
             _currentModelPath = modelPath;
             CurrentModelName = Path.GetFileNameWithoutExtension(modelPath);
-            
+
             StatusChanged?.Invoke(this, $"Model loaded: {CurrentModelName}");
             return true;
         }
@@ -107,7 +107,7 @@ public class MobileLLMService : IDisposable
         await foreach (var token in _executor.InferAsync(prompt, inferenceParams, cancellationToken))
         {
             tokenCount++;
-            
+
             // Filter unwanted strings
             var cleanToken = token
                 .Replace("###", "")
@@ -134,17 +134,24 @@ public class MobileLLMService : IDisposable
     }
 
     /// <summary>
-    /// Build a prompt with system message and user input.
+    /// Build a prompt with system message, document context, and user input.
     /// </summary>
-    public static string BuildPrompt(string userMessage, string? systemPrompt = null)
+    public static string BuildPrompt(string userMessage, string? systemPrompt = null, string? documentContext = null)
     {
         var sb = new StringBuilder();
-        
+
         var system = systemPrompt ?? "You are a helpful AI assistant. Be concise and direct in your responses.";
         sb.AppendLine($"### System:\n{system}\n");
+
+        // Add document context if available
+        if (!string.IsNullOrWhiteSpace(documentContext))
+        {
+            sb.AppendLine(documentContext);
+        }
+
         sb.AppendLine($"### User:\n{userMessage}\n");
         sb.AppendLine("### Assistant:");
-        
+
         return sb.ToString();
     }
 
@@ -160,11 +167,11 @@ public class MobileLLMService : IDisposable
         _weights = null;
         _currentModelPath = null;
         CurrentModelName = null;
-        
+
         // Force garbage collection to free memory
         GC.Collect();
         GC.WaitForPendingFinalizers();
-        
+
         StatusChanged?.Invoke(this, "Model unloaded");
     }
 
@@ -184,7 +191,7 @@ public class MobileLLMService : IDisposable
             };
             _context = _weights.CreateContext(parameters);
             _executor = new InteractiveExecutor(_context);
-            
+
             StatusChanged?.Invoke(this, "Context cleared");
         }
     }

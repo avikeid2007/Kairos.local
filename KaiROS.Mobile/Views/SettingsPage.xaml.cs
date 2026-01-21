@@ -16,4 +16,9 @@ public partial class SettingsPage : ContentPage
             vm.LoadSavedSettings();
         }
     }
+
+    private async void OnPromptLibraryTapped(object sender, TappedEventArgs e)
+    {
+        await Shell.Current.GoToAsync("PromptLibrary");
+    }
 }

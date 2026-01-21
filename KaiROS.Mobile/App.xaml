@@ -18,6 +18,7 @@
             <converters:RoleToUserVisibilityConverter x:Key="RoleToUserVisibilityConverter"/>
             <converters:RoleToAssistantVisibilityConverter x:Key="RoleToAssistantVisibilityConverter"/>
             <converters:BoolToStatusColorConverter x:Key="BoolToStatusColorConverter"/>
+            <converters:BoolToMicIconConverter x:Key="BoolToMicIconConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

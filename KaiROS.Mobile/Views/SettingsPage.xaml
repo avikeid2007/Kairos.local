@@ -23,7 +23,7 @@
                        VerticalOptions="Center"/>
             </HorizontalStackLayout>
 
-            <!-- System Prompt Section -->
+            <!-- Prompt Library Section -->
             <Border Padding="1.5"
                     StrokeShape="RoundRectangle 16"
                     Stroke="Transparent">
@@ -39,50 +39,28 @@
                         StrokeShape="RoundRectangle 14"
                         Stroke="Transparent"
                         Padding="16">
-                    <VerticalStackLayout Spacing="12">
-                        <Label Text="System Prompt"
-                               FontSize="16"
-                               FontAttributes="Bold"
-                               TextColor="White"/>
-                        <Label Text="Customize the AI's behavior and personality"
-                               FontSize="12"
-                               TextColor="#9090B0"/>
-                        
-                        <Border BackgroundColor="#1E1E3A"
-                                StrokeShape="RoundRectangle 10"
-                                Stroke="#2A2A50"
-                                Padding="12">
-                            <Editor Text="{Binding SystemPrompt}"
-                                    TextColor="White"
-                                    PlaceholderColor="#6060A0"
-                                    BackgroundColor="Transparent"
-                                    HeightRequest="100"
-                                    FontSize="14"/>
-                        </Border>
-                        
-                        <Border StrokeShape="RoundRectangle 10"
-                                Stroke="Transparent"
-                                HeightRequest="40"
-                                HorizontalOptions="End">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#7B2CBF" Offset="0.0"/>
-                                    <GradientStop Color="#9333EA" Offset="1.0"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Label Text="Save Prompt"
-                                   FontSize="13"
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnPromptLibraryTapped"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Text="📝"
+                               FontSize="28"
+                               VerticalOptions="Center"/>
+                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                            <Label Text="Prompt Library"
+                                   FontSize="16"
                                    FontAttributes="Bold"
-                                   TextColor="White"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"
-                                   Padding="16,0">
-                                <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding SaveSystemPromptCommand}"/>
-                                </Label.GestureRecognizers>
-                            </Label>
-                        </Border>
-                    </VerticalStackLayout>
+                                   TextColor="White"/>
+                            <Label Text="Manage AI personas and system prompts"
+                                   FontSize="12"
+                                   TextColor="#9090B0"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2"
+                               Text="→"
+                               FontSize="20"
+                               TextColor="#7070A0"
+                               VerticalOptions="Center"/>
+                    </Grid>
                 </Border>
             </Border>
 
@@ -121,6 +99,55 @@
                     </VerticalStackLayout>
                 </Border>
             </Border>
+
+            <!-- Chat Retention Section -->
+            <Border Padding="1.5"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="Transparent">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                        <GradientStop Color="#3B82F6" Offset="0.5"/>
+                        <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                
+                <Border BackgroundColor="#12122A"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Chat History"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                        <Label Text="Automatically delete old conversations"
+                               FontSize="12"
+                               TextColor="#9090B0"/>
+                        
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <Label Text="Retention Period"
+                                   TextColor="White"
+                                   FontSize="14"
+                                   VerticalOptions="Center"/>
+                            <Border Grid.Column="1"
+                                    BackgroundColor="#1E1E3A"
+                                    StrokeShape="RoundRectangle 8"
+                                    Stroke="#2A2A50"
+                                    Padding="8,4">
+                                <Picker ItemsSource="{Binding RetentionOptions}"
+                                        SelectedItem="{Binding ChatRetentionDays}"
+                                        TextColor="White"
+                                        FontSize="14"
+                                        WidthRequest="100"
+                                        HorizontalTextAlignment="Center"
+                                        ItemDisplayBinding="{Binding ., StringFormat='{0} days'}"/>
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </Border>
+
 
             <!-- About Section -->
             <Border Padding="1.5"
