@@ -1,7 +1,7 @@
 # KaiROS AI
 
 <p align="center">
-  <img src="KaiROS.AI/Assets/logo.png" alt="KaiROS AI Logo" width="128"/>
+  <img src="docs/assets/logo.png" alt="KaiROS AI Logo" width="128"/>
 </p>
 
 <p align="center">
