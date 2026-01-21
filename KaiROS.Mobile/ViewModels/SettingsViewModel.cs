@@ -1,10 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KaiROS.Mobile.Services;
 
 namespace KaiROS.Mobile.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
+    private readonly ChatDatabaseService _databaseService;
+
     [ObservableProperty]
     private string _systemPrompt = "You are a helpful AI assistant. Be concise and accurate in your responses.";
 
@@ -20,9 +23,16 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _appVersion = "1.0.0";
 
-    public SettingsViewModel()
+    [ObservableProperty]
+    private int _chatRetentionDays;
+
+    public List<int> RetentionOptions { get; } = new() { 7, 15, 30, 90 };
+
+    public SettingsViewModel(ChatDatabaseService databaseService)
     {
+        _databaseService = databaseService;
         LoadHardwareInfo();
+        LoadSavedSettings();
     }
 
     private void LoadHardwareInfo()
@@ -87,5 +97,22 @@ public partial class SettingsViewModel : ObservableObject
     public void LoadSavedSettings()
     {
         SystemPrompt = Preferences.Get("SystemPrompt", SystemPrompt);
+        ChatRetentionDays = Preferences.Get("ChatRetentionDays", 15);
+    }
+
+    partial void OnChatRetentionDaysChanged(int value)
+    {
+        Preferences.Set("ChatRetentionDays", value);
+        // Purge old sessions when retention changes
+        _ = _databaseService.PurgeOldSessionsAsync(value);
+    }
+
+    /// <summary>
+    /// Purge old chat sessions based on retention setting.
+    /// Call this on app startup.
+    /// </summary>
+    public async Task PurgeOldChatsAsync()
+    {
+        await _databaseService.PurgeOldSessionsAsync(ChatRetentionDays);
     }
 }

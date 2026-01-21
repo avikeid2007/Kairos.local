@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:KaiROS.Mobile.ViewModels"
+             xmlns:models="clr-namespace:KaiROS.Mobile.Models"
+             x:Class="KaiROS.Mobile.Views.ChatHistoryPage"
+             x:DataType="viewmodels:ChatHistoryViewModel"
+             Title="History"
+             BackgroundColor="#0D0D1A"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        
+        <!-- Header -->
+        <HorizontalStackLayout Grid.Row="0" 
+                               Padding="20,16"
+                               Spacing="12"
+                               BackgroundColor="#0D0D1A">
+            <Image Source="logo.png"
+                   HeightRequest="36"
+                   WidthRequest="36"/>
+            <Label Text="Chat History"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+
+        <!-- Search Bar -->
+        <Border Grid.Row="1" 
+                Margin="16,0,16,12"
+                Padding="12,8"
+                StrokeShape="RoundRectangle 12"
+                BackgroundColor="#1E1E3A"
+                Stroke="#2A2A50">
+            <Entry Placeholder="Search chats..."
+                   PlaceholderColor="#6060A0"
+                   TextColor="White"
+                   BackgroundColor="Transparent"
+                   Text="{Binding SearchQuery}"/>
+        </Border>
+
+        <!-- Sessions List -->
+        <CollectionView Grid.Row="2" 
+                        ItemsSource="{Binding Sessions}"
+                        SelectionMode="None"
+                        Margin="16,0">
+            
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8">
+                    <Label Text="📭" FontSize="48" HorizontalOptions="Center"/>
+                    <Label Text="No chat history yet" 
+                           FontSize="16" 
+                           TextColor="#7070A0"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Start a new conversation in the Chat tab" 
+                           FontSize="13" 
+                           TextColor="#5050A0"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ChatSession">
+                    <Border Margin="0,6"
+                            Padding="1.5"
+                            StrokeShape="RoundRectangle 14"
+                            Stroke="Transparent">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                <GradientStop Color="#3B82F6" Offset="0.5"/>
+                                <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        
+                        <Border Padding="14"
+                                StrokeShape="RoundRectangle 12"
+                                BackgroundColor="#12122A"
+                                Stroke="Transparent">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ChatHistoryViewModel}}, Path=OpenSessionCommand}"
+                                    CommandParameter="{Binding .}"/>
+                            </Border.GestureRecognizers>
+                            
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                
+                                <!-- Title -->
+                                <Label Text="{Binding Title}"
+                                       FontSize="15"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       LineBreakMode="TailTruncation"/>
+                                
+                                <!-- Delete Button -->
+                                <Border Grid.Column="1"
+                                        Grid.RowSpan="2"
+                                        HeightRequest="32"
+                                        WidthRequest="32"
+                                        StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="#991B1B"
+                                        Stroke="Transparent"
+                                        VerticalOptions="Center">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ChatHistoryViewModel}}, Path=DeleteSessionCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="🗑"
+                                           FontSize="14"
+                                           TextColor="White"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
+                                </Border>
+                                
+                                <!-- Metadata Row -->
+                                <HorizontalStackLayout Grid.Row="1" Spacing="12" Margin="0,4,0,0">
+                                    <Label FontSize="11" TextColor="#7070A0">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="💬 "/>
+                                                <Span Text="{Binding MessageCount}"/>
+                                                <Span Text=" messages"/>
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="11" TextColor="#7070A0"
+                                           Text="{Binding LastModifiedAt, StringFormat='{0:MMM dd, HH:mm}'}"/>
+                                </HorizontalStackLayout>
+                                
+                            </Grid>
+                        </Border>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Loading Indicator -->
+        <ActivityIndicator Grid.Row="2"
+                           IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Color="#7B2CBF"
+                           HeightRequest="40"
+                           VerticalOptions="Center"/>
+        
+    </Grid>
+</ContentPage>

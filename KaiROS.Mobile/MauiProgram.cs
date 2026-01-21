@@ -31,16 +31,24 @@ public static class MauiProgram
         // Register Services (Singleton for shared state)
         builder.Services.AddSingleton<MobileLLMService>();
         builder.Services.AddSingleton<ModelDownloadService>();
+        builder.Services.AddSingleton<ChatDatabaseService>();
+        builder.Services.AddSingleton<PromptLibraryService>();
+        builder.Services.AddSingleton<VoiceService>();
+        builder.Services.AddSingleton<DocumentService>();
 
         // Register ViewModels
         builder.Services.AddTransient<ChatViewModel>();
         builder.Services.AddTransient<ModelSelectionViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddTransient<ChatHistoryViewModel>();
+        builder.Services.AddTransient<PromptLibraryViewModel>();
 
         // Register Pages
         builder.Services.AddTransient<ChatPage>();
         builder.Services.AddTransient<ModelSelectionPage>();
         builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddTransient<ChatHistoryPage>();
+        builder.Services.AddTransient<PromptLibraryPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

@@ -27,6 +27,12 @@
             ContentTemplate="{DataTemplate views:ChatPage}"/>
         
         <ShellContent 
+            Title="History"
+            Route="History"
+            Icon="icon_history.svg"
+            ContentTemplate="{DataTemplate views:ChatHistoryPage}"/>
+        
+        <ShellContent 
             Title="Settings"
             Route="Settings"
             Icon="icon_settings.svg"

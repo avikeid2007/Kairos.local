@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:KaiROS.Mobile.ViewModels"
+             xmlns:models="clr-namespace:KaiROS.Mobile.Models"
+             x:Class="KaiROS.Mobile.Views.PromptLibraryPage"
+             x:DataType="viewmodels:PromptLibraryViewModel"
+             Title="Prompt Library"
+             BackgroundColor="#0D0D1A"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*">
+        
+        <!-- Header -->
+        <Grid Grid.Row="0" Padding="16,12" ColumnDefinitions="Auto,*,Auto">
+            <Border HeightRequest="36"
+                    WidthRequest="36"
+                    StrokeShape="RoundRectangle 10"
+                    BackgroundColor="#1E1E3A"
+                    Stroke="#2A2A50">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBackTapped"/>
+                </Border.GestureRecognizers>
+                <Label Text="←"
+                       FontSize="18"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+            </Border>
+            
+            <Label Grid.Column="1"
+                   Text="Prompt Library"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"/>
+            
+            <!-- Add Button -->
+            <Border Grid.Column="2"
+                    HeightRequest="36"
+                    WidthRequest="36"
+                    StrokeShape="RoundRectangle 10"
+                    Stroke="Transparent">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                        <GradientStop Color="#3B82F6" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding StartNewPresetCommand}"/>
+                </Border.GestureRecognizers>
+                <Label Text="+"
+                       FontSize="20"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            
+            <!-- Presets List -->
+            <CollectionView ItemsSource="{Binding Presets}"
+                            Margin="16,0"
+                            IsVisible="{Binding IsEditing, Converter={StaticResource InvertBoolConverter}}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SystemPromptPreset">
+                        <Border Margin="0,6"
+                                Padding="1.5"
+                                StrokeShape="RoundRectangle 14"
+                                Stroke="Transparent">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                    <GradientStop Color="#3B82F6" Offset="0.5"/>
+                                    <GradientStop Color="#7B2CBF" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            
+                            <Border Padding="14"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="#12122A"
+                                    Stroke="Transparent">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto">
+                                    
+                                    <!-- Icon -->
+                                    <Label Text="{Binding Icon}"
+                                           FontSize="28"
+                                           VerticalOptions="Center"
+                                           Grid.RowSpan="2"/>
+                                    
+                                    <!-- Name -->
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Name}"
+                                           FontSize="15"
+                                           FontAttributes="Bold"
+                                           TextColor="White"
+                                           Margin="12,0,0,0"/>
+                                    
+                                    <!-- Prompt Preview -->
+                                    <Label Grid.Column="1"
+                                           Grid.Row="1"
+                                           Text="{Binding PromptText}"
+                                           FontSize="12"
+                                           TextColor="#7070A0"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="1"
+                                           Margin="12,2,0,0"/>
+                                    
+                                    <!-- Select Button -->
+                                    <Border Grid.Column="2"
+                                            Grid.RowSpan="2"
+                                            HeightRequest="32"
+                                            Padding="12,0"
+                                            StrokeShape="RoundRectangle 8"
+                                            Stroke="Transparent"
+                                            VerticalOptions="Center"
+                                            Margin="8,0">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                                <GradientStop Color="#9333EA" Offset="1.0"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:PromptLibraryViewModel}}, Path=SelectPresetCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        </Border.GestureRecognizers>
+                                        <Label Text="Use"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="White"
+                                               VerticalOptions="Center"/>
+                                    </Border>
+                                    
+                                    <!-- Edit Button -->
+                                    <Border Grid.Column="3"
+                                            Grid.RowSpan="2"
+                                            HeightRequest="32"
+                                            WidthRequest="32"
+                                            StrokeShape="RoundRectangle 8"
+                                            BackgroundColor="#1E1E3A"
+                                            Stroke="#2A2A50"
+                                            VerticalOptions="Center">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:PromptLibraryViewModel}}, Path=EditPresetCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        </Border.GestureRecognizers>
+                                        <Label Text="✏️"
+                                               FontSize="14"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center"/>
+                                    </Border>
+                                    
+                                </Grid>
+                            </Border>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Edit Form -->
+            <ScrollView IsVisible="{Binding IsEditing}" Padding="16">
+                <VerticalStackLayout Spacing="16">
+                    
+                    <!-- Name Field -->
+                    <Border Padding="1.5"
+                            StrokeShape="RoundRectangle 14"
+                            Stroke="Transparent">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                <GradientStop Color="#3B82F6" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border BackgroundColor="#12122A"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="16">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Name" TextColor="#9090B0" FontSize="12"/>
+                                <Entry Text="{Binding EditName}"
+                                       TextColor="White"
+                                       PlaceholderColor="#6060A0"
+                                       Placeholder="Preset name..."
+                                       BackgroundColor="Transparent"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Border>
+                    
+                    <!-- Icon Picker -->
+                    <Border Padding="1.5"
+                            StrokeShape="RoundRectangle 14"
+                            Stroke="Transparent">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                <GradientStop Color="#3B82F6" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border BackgroundColor="#12122A"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="16">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Icon" TextColor="#9090B0" FontSize="12"/>
+                                <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                                    <BindableLayout.ItemsSource>
+                                        <x:Array Type="{x:Type x:String}">
+                                            <x:String>🤖</x:String>
+                                            <x:String>✍️</x:String>
+                                            <x:String>💻</x:String>
+                                            <x:String>📋</x:String>
+                                            <x:String>🌐</x:String>
+                                            <x:String>🎨</x:String>
+                                            <x:String>📚</x:String>
+                                            <x:String>🔬</x:String>
+                                            <x:String>💡</x:String>
+                                            <x:String>🎯</x:String>
+                                        </x:Array>
+                                    </BindableLayout.ItemsSource>
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Border HeightRequest="40"
+                                                    WidthRequest="40"
+                                                    Margin="4"
+                                                    StrokeShape="RoundRectangle 8"
+                                                    BackgroundColor="#1E1E3A"
+                                                    Stroke="#2A2A50">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnIconTapped" CommandParameter="{Binding .}"/>
+                                                </Border.GestureRecognizers>
+                                                <Label Text="{Binding .}"
+                                                       FontSize="20"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </FlexLayout>
+                                <Label Text="{Binding EditIcon, StringFormat='Selected: {0}'}" 
+                                       TextColor="White" FontSize="14"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Border>
+                    
+                    <!-- Prompt Field -->
+                    <Border Padding="1.5"
+                            StrokeShape="RoundRectangle 14"
+                            Stroke="Transparent">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                <GradientStop Color="#3B82F6" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border BackgroundColor="#12122A"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="16">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="System Prompt" TextColor="#9090B0" FontSize="12"/>
+                                <Editor Text="{Binding EditPrompt}"
+                                        TextColor="White"
+                                        PlaceholderColor="#6060A0"
+                                        Placeholder="Enter the system prompt..."
+                                        BackgroundColor="Transparent"
+                                        HeightRequest="150"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Border>
+                    
+                    <!-- Buttons -->
+                    <HorizontalStackLayout Spacing="12" HorizontalOptions="End">
+                        <Border HeightRequest="40"
+                                Padding="20,0"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="#2A2A50"
+                                Stroke="Transparent">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CancelEditCommand}"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="Cancel"
+                                   FontSize="14"
+                                   TextColor="White"
+                                   VerticalOptions="Center"/>
+                        </Border>
+                        
+                        <Border HeightRequest="40"
+                                Padding="20,0"
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="Transparent">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#7B2CBF" Offset="0.0"/>
+                                    <GradientStop Color="#9333EA" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SavePresetCommand}"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="Save"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   VerticalOptions="Center"/>
+                        </Border>
+                    </HorizontalStackLayout>
+                    
+                </VerticalStackLayout>
+            </ScrollView>
+            
+        </Grid>
+
+        <!-- Loading -->
+        <ActivityIndicator Grid.Row="1"
+                           IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Color="#7B2CBF"
+                           HeightRequest="40"
+                           VerticalOptions="Center"/>
+        
+    </Grid>
+</ContentPage>

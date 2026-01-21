@@ -63,6 +63,30 @@
                            HorizontalOptions="Center"
                            VerticalOptions="Center"/>
                     
+                    <!-- Document Attachment Button -->
+                    <HorizontalStackLayout Grid.Column="2" Spacing="8">
+                        <!-- Document Status -->
+                        <Label Text="{Binding DocumentStatusText}"
+                               FontSize="12"
+                               TextColor="#7B2CBF"
+                               IsVisible="{Binding HasDocuments}"
+                               VerticalOptions="Center"/>
+                        
+                        <!-- Add Document Button -->
+                        <Border HeightRequest="32"
+                                WidthRequest="32"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="#1E1E3A"
+                                Stroke="#2A2A50">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding AddDocumentCommand}"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="📎"
+                                   FontSize="16"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Border>
+                    </HorizontalStackLayout>
 
                 </Grid>
             </Border>
@@ -188,7 +212,7 @@
                 BackgroundColor="#15152A"
                 Padding="12,12"
                 Stroke="Transparent">
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto">
                 
                 <!-- Input Field with gradient border -->
                 <Border Padding="1.5"
@@ -218,11 +242,29 @@
                     </Border>
                 </Border>
                 
-                <!-- Send Button with gradient fill -->
+                <!-- Microphone Button -->
                 <Border Grid.Column="1"
                         HeightRequest="44"
                         WidthRequest="44"
-                        Margin="10,0,0,0"
+                        Margin="8,0,0,0"
+                        StrokeShape="RoundRectangle 22"
+                        Stroke="Transparent"
+                        BackgroundColor="{Binding IsListening, Converter={StaticResource BoolToStatusColorConverter}}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding StartVoiceInputCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Label Text="{Binding IsListening, Converter={StaticResource BoolToMicIconConverter}}"
+                           FontSize="18"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                </Border>
+                
+                <!-- Send Button with gradient fill -->
+                <Border Grid.Column="2"
+                        HeightRequest="44"
+                        WidthRequest="44"
+                        Margin="8,0,0,0"
                         StrokeShape="RoundRectangle 22"
                         Stroke="Transparent"
                         IsVisible="{Binding IsGenerating, Converter={StaticResource InvertBoolConverter}}">
@@ -232,35 +274,33 @@
                             <GradientStop Color="#3B82F6" Offset="1.0"/>
                         </LinearGradientBrush>
                     </Border.Background>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SendMessageCommand}"/>
+                    </Border.GestureRecognizers>
                     <Label Text="▶"
                            FontSize="16"
                            TextColor="White"
                            HorizontalOptions="Center"
-                           VerticalOptions="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding SendMessageCommand}"/>
-                        </Label.GestureRecognizers>
-                    </Label>
+                           VerticalOptions="Center"/>
                 </Border>
                 
                 <!-- Stop Button -->
-                <Border Grid.Column="1"
+                <Border Grid.Column="2"
                         HeightRequest="44"
                         WidthRequest="44"
                         StrokeShape="RoundRectangle 22"
                         Stroke="Transparent"
                         BackgroundColor="#EF4444"
-                        Margin="10,0,0,0"
+                        Margin="8,0,0,0"
                         IsVisible="{Binding IsGenerating}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding StopGenerationCommand}"/>
+                    </Border.GestureRecognizers>
                     <Label Text="■"
                            FontSize="12"
                            TextColor="White"
                            HorizontalOptions="Center"
-                           VerticalOptions="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding StopGenerationCommand}"/>
-                        </Label.GestureRecognizers>
-                    </Label>
+                           VerticalOptions="Center"/>
                 </Border>
             </Grid>
         </Border>
