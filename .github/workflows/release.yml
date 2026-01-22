@@ -66,9 +66,9 @@ jobs:
       run: |
         $version = "${{ steps.version.outputs.VERSION }}"
         
-        # Locate Windows SDK Tools
+        # Locate Windows SDK Tools correctly
         $windowsKitsRoot = "C:\Program Files (x86)\Windows Kits\10\bin"
-        $latestKit = Get-ChildItem $windowsKitsRoot | Sort-Object Name -Descending | Select-Object -First 1
+        $latestKit = Get-ChildItem $windowsKitsRoot | Where-Object { $_.Name -like "10.*" } | Sort-Object Name -Descending | Select-Object -First 1
         $makeAppx = Join-Path $latestKit.FullName "x64\makeappx.exe"
         $signTool = Join-Path $latestKit.FullName "x64\signtool.exe"
         
@@ -122,7 +122,7 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Install MAUI Workload
-      run: dotnet workload install android
+      run: dotnet workload install maui-android
 
     - name: Decode Keystore
       run: |
