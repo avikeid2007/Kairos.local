@@ -45,3 +45,9 @@ TestResults/
 # Local settings
 local.settings.json
 appsettings.Development.json
+
+# Security
+*.keystore
+*.jks
+*.pfx
+*.cer

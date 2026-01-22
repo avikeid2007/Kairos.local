@@ -15,7 +15,8 @@
 		<ApplicationTitle>KaiROS AI</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.kairos.ai.mobile</ApplicationId>
+		<!-- App Identifier -->
+		<ApplicationId>com.avnishkumar.kairosai</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
@@ -61,6 +62,9 @@
 		
 		<!-- SQLite for chat history -->
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		
+		<!-- Markdown Parsing -->
+		<PackageReference Include="Markdig" Version="0.37.0" />
 	</ItemGroup>
 
 </Project>
