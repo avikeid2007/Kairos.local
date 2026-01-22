@@ -212,6 +212,23 @@ body {
     font-size: 0.9rem;
 }
 
+/* Feature Banner */
+.feature-banner {
+    margin: 60px auto 40px;
+    max-width: 1000px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+}
+
+.feature-graphic {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 20px;
+}
+
 /* Screenshot Gallery */
 .screenshot-gallery {
     margin-top: 60px;
@@ -570,4 +587,159 @@ body {
         grid-template-columns: 1fr;
         gap: 40px;
     }
+
+    .comparison-table table {
+        font-size: 0.85rem;
+    }
+
+    .mobile-images img {
+        max-width: 300px;
+    }
+}
+
+/* Comparison Section */
+.comparison {
+    padding: 120px 0;
+    background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.08) 0%, transparent 60%), var(--bg-dark);
+}
+
+.comparison-table {
+    max-width: 900px;
+    margin: 0 auto;
+    overflow-x: auto;
+}
+
+.comparison-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.comparison-table thead {
+    background: var(--bg-card-hover);
+}
+
+.comparison-table th {
+    padding: 20px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.comparison-table td {
+    padding: 16px 20px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+}
+
+.comparison-table td:first-child {
+    text-align: left;
+    font-weight: 500;
+}
+
+.comparison-table tr.highlight {
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.comparison-table .check {
+    color: #10b981;
+    font-size: 1.2rem;
+}
+
+.comparison-table .cross {
+    color: #6b6b80;
+    font-size: 1.2rem;
+}
+
+/* Platform Sections */
+.platform-section {
+    padding: 100px 0;
+}
+
+.desktop-section {
+    background: radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.1) 0%, transparent 50%), var(--bg-dark);
+}
+
+.mobile-section {
+    background: radial-gradient(ellipse at bottom right, rgba(6, 182, 212, 0.1) 0%, transparent 50%), var(--bg-dark);
+}
+
+/* Updated Gallery Styles */
+.desktop-gallery,
+.mobile-gallery {
+    display: none;
+}
+
+.desktop-gallery.active,
+.mobile-gallery.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.desktop-tabs,
+.mobile-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.desktop-tab,
+.mobile-tab {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.desktop-tab:hover,
+.mobile-tab:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+.desktop-tab.active,
+.mobile-tab.active {
+    background: var(--gradient);
+    border-color: transparent;
+    color: white;
+}
+
+.desktop-images,
+.mobile-images {
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.desktop-img,
+.mobile-img {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border);
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.desktop-img.active,
+.mobile-img.active {
+    display: block;
+}
+
+.mobile-img {
+    max-width: 400px;
+    margin: 0 auto;
 }

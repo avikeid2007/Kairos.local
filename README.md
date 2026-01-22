@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/avikeid2007/Kairos.local/releases/latest"><img src="https://img.shields.io/github/v/release/avikeid2007/Kairos.local?style=flat-square&logo=github&label=Download" alt="Download"/></a>
+  <a href="https://github.com/avikeid2007/KaiROS-AI/releases/latest"><img src="https://img.shields.io/github/v/release/avikeid2007/KaiROS-AI?style=flat-square&logo=github&label=Download" alt="Download"/></a>
   <img src="https://img.shields.io/badge/.NET-9.0-512BD4?style=flat-square&logo=dotnet" alt=".NET 9"/>
   <img src="https://img.shields.io/badge/Windows-Desktop-0078D4?style=flat-square&logo=windows" alt="Windows"/>
   <img src="https://img.shields.io/badge/Android-Mobile-3DDC84?style=flat-square&logo=android" alt="Android"/>
@@ -23,20 +23,20 @@
 ## 📥 Download
 
 <p align="center">
-  <a href="https://github.com/avikeid2007/Kairos.local/releases/latest">
+  <a href="https://github.com/avikeid2007/KaiROS-AI/releases/latest">
     <img src="https://img.shields.io/badge/Download_Windows-EXE-blue?style=for-the-badge&logo=windows" alt="Download Windows Installer"/>
   </a>
   <a href="https://apps.microsoft.com/detail/9n0l64zr0znd?hl=en-US&gl=IN" target="_blank">
       <img src="https://img.shields.io/badge/Microsoft_Store-Get_It_Now-blue?style=for-the-badge&logo=microsoft" alt="Microsoft Store"/>
   </a>
   <br>
-  <a href="https://github.com/avikeid2007/Kairos.local/releases/latest">
+  <a href="https://github.com/avikeid2007/KaiROS-AI/releases/latest">
     <img src="https://img.shields.io/badge/Download_Android-APK-3DDC84?style=for-the-badge&logo=android" alt="Download Android APK"/>
   </a>
   <img src="https://img.shields.io/badge/Play_Store-Coming_Soon-orange?style=for-the-badge&logo=google-play" alt="Play Store"/>
 </p>
 
-- **[Download Latest Release](https://github.com/avikeid2007/Kairos.local/releases/latest)** - Windows Installer & Android APK
+- **[Download Latest Release](https://github.com/avikeid2007/KaiROS-AI/releases/latest)** - Windows Installer & Android APK
 - **Microsoft Store** - [Get it now](https://apps.microsoft.com/detail/9n0l64zr0znd?hl=en-US&gl=IN)
 - **Play Store** - 🔜 Coming Soon!
 - No .NET installation required
