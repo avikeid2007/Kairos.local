@@ -48,58 +48,12 @@ jobs:
         $csproj = $csproj -replace '<FileVersion>.*</FileVersion>', "<FileVersion>$version.0</FileVersion>"
         $csproj | Set-Content ${{ env.PROJECT_PATH }}
 
-    - name: Decode Signing Certificate
-      id: decode_pfx
-      run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.PFX_BASE64 }}")
-        [IO.File]::WriteAllBytes("KaiROS.pfx", $pfx_cert_byte)
-
     - name: Restore dependencies
       run: dotnet restore ${{ env.PROJECT_PATH }}
 
     - name: Publish .NET app
       run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -r win-x64 --self-contained true -o ./publish
 
-    # MSIX Generation Steps
-    - name: Create MSIX
-      shell: pwsh
-      run: |
-        $version = "${{ steps.version.outputs.VERSION }}"
-        
-        # Locate Windows SDK Tools correctly
-        $windowsKitsRoot = "C:\Program Files (x86)\Windows Kits\10\bin"
-        $latestKit = Get-ChildItem $windowsKitsRoot | Where-Object { $_.Name -like "10.*" } | Sort-Object Name -Descending | Select-Object -First 1
-        $makeAppx = Join-Path $latestKit.FullName "x64\makeappx.exe"
-        $signTool = Join-Path $latestKit.FullName "x64\signtool.exe"
-        
-        echo "Using MakeAppx: $makeAppx"
-        
-        # Prepare Manifest
-        Copy-Item "KaiROS.AI/Package.appxmanifest" "./publish/AppxManifest.xml"
-        
-        # Copy Assets
-        $assetsSource = "KaiROS.AI/Assets/*"
-        $assetsDest = "./publish/Assets"
-        New-Item -ItemType Directory -Force -Path $assetsDest
-        Copy-Item -Path $assetsSource -Destination $assetsDest -Recurse -Force
-        
-        # Verify Assets exist (Debug)
-        Get-ChildItem $assetsDest
-        
-        # Update version in manifest (4-part version required)
-        $manifestPath = "./publish/AppxManifest.xml"
-        $manifestContent = Get-Content $manifestPath -Raw
-        $manifestContent = $manifestContent -replace 'Version="[^"]*"', "Version=`"$version.0`""
-        Set-Content $manifestPath -Value $manifestContent
-        
-        $msixName = "KaiROS-AI-v$version.msix"
-        & $makeAppx pack /d ./publish /p $msixName /o
-        
-        echo "Signing MSIX..."
-        & $signTool sign /fd SHA256 /f KaiROS.pfx /p "${{ secrets.PFX_PASSWORD }}" /t http://timestamp.digicert.com $msixName
-        
-        mkdir artifacts
-        Move-Item $msixName artifacts/
 
     # Installer Generation Steps
     - name: Build Installer (EXE)
@@ -114,8 +68,6 @@ jobs:
         (Get-Content $issFile) -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$version`"" | Set-Content $issFile
         
         & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
-        
-        Move-Item artifacts/*.exe artifacts/KaiROS-AI-v$version-Setup.exe -Force
 
     - name: Upload Windows Artifacts
       uses: actions/upload-artifact@v4
