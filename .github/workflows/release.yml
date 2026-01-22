@@ -140,10 +140,12 @@ jobs:
         [IO.File]::WriteAllBytes("kairos.keystore", $keystore_bytes)
 
     - name: Build Android
+      shell: pwsh
       run: |
+        $keystorePath = Join-Path $env:GITHUB_WORKSPACE "kairos.keystore"
         dotnet publish KaiROS.Mobile/KaiROS.Mobile.csproj -f net9.0-android -c Release `
           -p:AndroidKeyStore=true `
-          -p:AndroidSigningKeyStore="${{ github.workspace }}\kairos.keystore" `
+          -p:AndroidSigningKeyStore="$keystorePath" `
           -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} `
           -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYSTORE_PASS }} `
           -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASS }}
