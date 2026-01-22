@@ -44,61 +44,103 @@
 
 ---
 
-## ✨ Features
+## 🆚 Feature Comparison
 
-### Core
+| Feature | Windows Desktop | Android Mobile |
+|---------|:---------------:|:--------------:|
+| **Local LLM Inference** | ✅ | ✅ |
+| **Model Manager** | ✅ | ✅ |
+| **Chat Interface** | ✅ | ✅ |
+| **Chat History** | ✅ | ✅ |
+| **System Prompt Editing** | ✅ | ✅ |
+| **Custom Model Import** | ✅ | ✅ |
+| **Markdown Rendering** | ✅ | ✅ |
+| **RAG (Document Chat)** | ✅ | ✅ |
+| **Local REST API** | ✅ | ❌ |
+| **System Tray Support** | ✅ | ❌ |
+| **DirectML & Vulkan** | ✅ | ❌ |
+
+---
+
+## 🖥️ Desktop Version (Windows)
+
+The Desktop version is the full-featured powerhouse, designed for productivity and integration.
+
+### Key Features
+
+- **RAG (Retrieval Augmented Generation)**: Chat with your PDF, DOCX, and TXT files locally.
+- **Local REST API Server**: Integrate your local models with VS Code (Continue), LM Studio, or your own apps.
+- **System Tray Integration**: Keep your AI assistant running in the background.
+- **Advanced GPU Support**: Full support for CUDA, DirectML, and Vulkan backends.
+
+### Desktop Screenshots
+
+| Model Catalog | Chat Interface |
+|:---:|:---:|
+| ![Model Catalog](docs/assets/model-all.png) | ![Chat Interface](docs/assets/chat.png) |
+
+| RAG (Document Chat) | Settings |
+|:---:|:---:|
+| ![RAG](docs/assets/RAG.png) | ![Settings](docs/assets/setting.png) |
+
+---
+
+## 📱 Mobile Version (Android)
+
+The Mobile version brings the power of local AI to your pocket. Optimized for touch and on-the-go usage.
+
+### Key Features
+
+- **Offline Capable**: Run LLMs anywhere, even without an internet connection (after model download).
+- **Battery Efficient**: Optimized for mobile processors.
+- **Clean UI**: A simplified interface focused on chat and quick interactions.
+- **Chat History**: Save and resume your conversations anytime.
+
+### Mobile Screenshots
+
+| Chat Interface | Model Selection |
+|:---:|:---:|
+| ![Mobile Chat](docs/assets/Screenshot-mobile-Chat.png) | ![Mobile Models](docs/assets/Screenshot-Mobile-models.png) |
+
+| Chat History | System Prompt |
+|:---:|:---:|
+| ![Mobile History](docs/assets/Screenshot-mobile-History.png) | ![System Prompt](docs/assets/Screenshot-mobile-system-prompt.png) |
+
+| Settings | |
+|:---:|:---:|
+| ![Mobile Settings](docs/assets/Screenshot-Mobile-settings.png) | |
+
+---
+
+## ✨ Shared Features
+
+### Core Capabilities
 
 - 🤖 **Run LLMs Locally** - No internet required after model download
-- 🚀 **GPU Acceleration** - CUDA 12 support for NVIDIA GPUs (RTX 50/40/30/20 series)
 - 📦 **Model Catalog** - 31 pre-configured models from 9 organizations
 - ⬇️ **Download Manager** - Pause, resume, and manage model downloads
-- 💬 **Chat Interface** - Clean, modern UI with streaming responses
+- 💬 **Streaming Responses** - Real-time text generation
 - 📊 **Performance Stats** - Real-time tokens/sec and memory usage
 
 ### Model Catalog
 
 - 🏢 **Organization Sections** - Collapsible groups for Qwen, Google, Meta, Microsoft, and more
 - 🔍 **Advanced Filtering** - Filter by Organization, Family, Variant (CPU-Only, GPU-Recommended)
-- ⬇️ **Downloaded Models** - Quick access section at the top
 - 🏷️ **Visual Badges** - Category, family, variant, and download status indicators
 - ➕ **Custom Models** - Add your own GGUF models from local files or URLs
 
-### Hardware Detection
-
-- � **Auto GPU Detection** - Supports NVIDIA RTX 50/40/30/20 series with correct VRAM detection
-- ⚡ **Smart Layer Allocation** - Optimal GPU layers calculated based on available VRAM
-- 🔄 **Fallback Loading** - Progressive fallback (GPU → 50% → 25% → CPU) if model loading fails
-
 ### Advanced
 
-- �🔌 **Local REST API** - Built-in REST API server for integration
-  - Endpoints: `/health`, `/models`, `/chat`, `/chat/stream`
-  - Works with VS Code Continue, LM Studio clients, curl
-- 🗔 **System Tray** - Minimize to tray when API is running
-- 💬 **Feedback Hub** - Send feedback directly from Settings
 - 🎨 **Modern Dark Theme** - Beautiful gradient-based UI design
+- 💬 **Feedback Hub** - Send feedback directly from Settings
 
-## 🔌 Local REST API for Developers
+---
+
+## 🔌 Local REST API (Desktop Only)
 
 > **Build AI-powered applications without cloud dependencies!**
 
 KaiROS AI includes a **fully local REST API server** - perfect for developers who want to integrate local LLMs into their applications.
-
-### Why Use the API?
-
-- 🔒 **100% Private** - All data stays on your machine
-- 💰 **Zero API Costs** - No per-token charges
-- ⚡ **Low Latency** - No network round-trips to cloud
-- 🔧 **Standard REST API** - Easy integration with any programming language
-
-### Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Check API status |
-| `/models` | GET | List available models |
-| `/chat` | POST | Chat completion (non-streaming) |
-| `/chat/stream` | POST | Chat completion (streaming SSE) |
 
 ### Quick Start
 
@@ -110,37 +152,11 @@ curl http://localhost:5000/health
 curl -X POST http://localhost:5000/chat \
   -H "Content-Type: application/json" \
   -d '{"messages":[{"role":"user","content":"Hello!"}]}'
-
-# Streaming response
-curl -X POST http://localhost:5000/chat/stream \
-  -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"Write a poem"}]}'
 ```
 
-### Compatible With
+**enable in Settings → API Server**
 
-- **VS Code Continue** - AI coding assistant
-- **LM Studio clients** - Compatible REST clients
-- **Custom applications** - Python, Node.js, C#, etc.
-
-**Enable in Settings → API Server**
-
-## 📸 Screenshots
-
-### Model Catalog
-
-![Model Catalog](docs/assets/model-all.png)
-*Browse and download from 31 pre-configured models organized by organization*
-
-### Chat Interface
-
-![Chat Interface](docs/assets/chat.png)
-*Chat with AI using streaming responses*
-
-### RAG (Document Chat)
-
-![RAG Document Chat](docs/assets/RAG.png)
-*Chat with your documents using Retrieval Augmented Generation*
+---
 
 ## 🚀 Getting Started
 
@@ -173,42 +189,26 @@ curl -X POST http://localhost:5000/chat/stream \
    dotnet run --project KaiROS.AI
    ```
 
-### First Run
-
-1. Open the **Models** tab
-2. Click **Download** on your preferred model (TinyLlama recommended for testing)
-3. Once downloaded, click **Load Model**
-4. Navigate to **Chat** and start chatting!
-
-## 📦 Model Catalog (31 Models)
+## 📦 Model Catalog Overview
 
 ### Supported Organizations
 
-| Organization | Models | Highlights |
-|--------------|--------|------------|
-| **Qwen** | 10 | Qwen 2.5/3 series (0.5B - 14B) - Excellent multilingual |
-| **Google** | 6 | Gemma 2/3 models (270M - 27B) - High quality |
-| **HuggingFace** | 3 | SmolLM2 compact models - CPU-friendly |
-| **Meta** | 4 | LLaMA 3.1/3.2 + TinyLlama |
-| **Microsoft** | 3 | Phi-2, Phi-3, BitNet b1.58 |
-| **MistralAI** | 2 | Mistral 7B, Mistral Small 24B |
-| **Open Source** | 1 | GPT-oss 20B ⚠️ Experimental |
-| **RWKV** | 1 | RWKV-7 0.1B - Linear complexity RNN |
-| **Stability AI** | 1 | StableLM Zephyr 3B |
-
-### Model Sizes
-
-| Category | VRAM | Example Models |
-|----------|------|----------------|
-| Small | 1-4 GB | Qwen 2.5 0.5B, SmolLM2, TinyLlama, Phi-2 |
-| Medium | 4-10 GB | Qwen 2.5 7B, Mistral 7B, LLaMA 3.1 8B, Gemma 2 9B |
-| Large | 10+ GB | Qwen 2.5 14B, Gemma 3 27B, Mistral Small 24B |
+| Organization | Highlights |
+|--------------|------------|
+| **Qwen** | Qwen 2.5/3 series (0.5B - 14B) - Excellent multilingual |
+| **Google** | Gemma 2/3 models (270M - 27B) - High quality |
+| **Meta** | LLaMA 3.1/3.2 + TinyLlama |
+| **Microsoft** | Phi-2, Phi-3, BitNet b1.58 |
+| **MistralAI** | Mistral 7B, Mistral Small 24B |
+| **Open Source** | GPT-oss 20B ⚠️ Experimental |
 
 ### Recommended Models ⭐
 
 - **Phi-3 Mini 3.8B** - Best for general conversations (4 GB RAM)
 - **Qwen 2.5 3B** - Excellent multilingual and coding (4 GB RAM)
 - **Mistral 7B** - Complex reasoning tasks (8 GB RAM)
+
+---
 
 ## 🛠️ Tech Stack
 
@@ -227,59 +227,15 @@ KaiROS.AI/
 ├── Converters/          # XAML value converters
 ├── Models/              # Data models
 ├── Services/            # Business logic
-│   ├── ChatService.cs           # LLM inference
-│   ├── DownloadService.cs       # File downloads
-│   ├── HardwareDetectionService.cs
-│   └── ModelManagerService.cs   # Model catalog
 ├── Themes/              # UI styling
 ├── ViewModels/          # MVVM ViewModels
 ├── Views/               # XAML views
 └── appsettings.json     # Model catalog config
 ```
 
-## ⚙️ Configuration
-
-### Adding Custom Models
-
-Edit `appsettings.json` to add your own models:
-
-```json
-{
-  "LLMModels": [
-    {
-      "Name": "your-model.gguf",
-      "DisplayName": "Your Model Name",
-      "Description": "Description here",
-      "SizeText": "2.0 GB",
-      "SizeBytes": 2147483648,
-      "DownloadUrl": "https://huggingface.co/...",
-      "MinRam": "4 GB",
-      "Category": "small"
-    }
-  ]
-}
-```
-
-### GPU Configuration
-
-The app auto-detects available backends. To force a specific backend:
-
-1. Go to **Settings**
-2. Select your preferred **Execution Backend**
-3. Reload your model
-
-## 🤝 Contributing
+## 🤝 Contributing & License
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
@@ -287,8 +243,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [LLamaSharp](https://github.com/SciSharp/LLamaSharp) - Excellent .NET bindings for llama.cpp - **This project wouldn't be possible without LLamaSharp!**
 - [llama.cpp](https://github.com/ggerganov/llama.cpp) - High-performance LLM inference in C/C++
 - [Hugging Face](https://huggingface.co/) - Model hosting and community
-- [bartowski](https://huggingface.co/bartowski) - High-quality GGUF model quantizations
-- [TheBloke](https://huggingface.co/TheBloke) - GGUF model quantizations
 
 ---
 
