@@ -78,14 +78,13 @@ jobs:
         Copy-Item "KaiROS.AI/Package.appxmanifest" "./publish/AppxManifest.xml"
         
         # Copy Assets
-        $assetsSource = "KaiROS.AI/Assets"
+        $assetsSource = "KaiROS.AI/Assets/*"
         $assetsDest = "./publish/Assets"
-        if (Test-Path $assetsSource) {
-            Copy-Item $assetsSource -Destination $assetsDest -Recurse -Force
-        } else {
-             Write-Error "Assets folder not found at $assetsSource"
-             exit 1
-        }
+        New-Item -ItemType Directory -Force -Path $assetsDest
+        Copy-Item -Path $assetsSource -Destination $assetsDest -Recurse -Force
+        
+        # Verify Assets exist (Debug)
+        Get-ChildItem $assetsDest
         
         # Update version in manifest if needed (assuming manifest has placeholder or correct version)
         # Note: Package.appxmanifest usually requires 4-part version (1.0.0.0)
