@@ -144,7 +144,7 @@ jobs:
       run: |
         dotnet publish KaiROS.Mobile/KaiROS.Mobile.csproj -f net9.0-android -c Release `
           -p:AndroidKeyStore=true `
-          -p:AndroidSigningKeyStore=kairos.keystore `
+          -p:AndroidSigningKeyStore="${{ github.workspace }}\kairos.keystore" `
           -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} `
           -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYSTORE_PASS }} `
           -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASS }}
