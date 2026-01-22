@@ -1,3 +1,5 @@
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KaiROS.Mobile.Models;
@@ -263,6 +265,15 @@ public partial class ChatViewModel : ObservableObject
             _speakCts?.Dispose();
             _speakCts = null;
         }
+    }
+
+    [RelayCommand]
+    private async Task CopyMessage(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return;
+
+        await Clipboard.Default.SetTextAsync(content);
+        await Toast.Make("Message copied to clipboard").Show();
     }
 
     [RelayCommand]

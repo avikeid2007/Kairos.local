@@ -8,7 +8,8 @@ KaiROS AI ("the App") is a local AI assistant that runs entirely on your device.
 
 ## Data Collection
 
-### We Do NOT Collect:
+### We Do NOT Collect
+
 - ❌ Personal information
 - ❌ Chat conversations
 - ❌ Usage analytics
@@ -16,7 +17,8 @@ KaiROS AI ("the App") is a local AI assistant that runs entirely on your device.
 - ❌ Location data
 - ❌ Any telemetry
 
-### Data Stored Locally on Your Device:
+### Data Stored Locally on Your Device
+
 - ✅ Downloaded AI models (stored in app directory)
 - ✅ Chat history (stored locally in SQLite database)
 - ✅ App settings and preferences
@@ -31,22 +33,31 @@ KaiROS AI ("the App") is a local AI assistant that runs entirely on your device.
 ## Model Downloads
 
 When you download AI models:
+
 - Models are downloaded from Hugging Face (huggingface.co)
 - Only the model file is downloaded
 - No personal data is transmitted
 - Downloads can be paused and resumed
 
+## Mobile App Permissions (Android)
+
+To provide full functionality, the Android app requires the following permissions:
+
+- **Microphone (`RECORD_AUDIO`)**: Used *only* when you tap the microphone button to speak to the AI. Audio is processed locally and never uploaded.
+- **Network (`INTERNET`)**: Used *only* to download AI models from Hugging Face.
+- **Storage**: Used to save downloaded models and chat history on your device.
+
 ## Data Storage Locations
 
-| Data | Location |
-|------|----------|
-| AI Models | `%LOCALAPPDATA%\KaiROS.AI\models\` |
-| Chat History | `%LOCALAPPDATA%\KaiROS.AI\sessions.db` |
-| Settings | App installation directory |
+| Platform | Data | Location |
+|:---|:---|:---|
+| **Windows** | All Data | `%LOCALAPPDATA%\KaiROS.AI\` |
+| **Android** | Models & DB | App Internal Storage (Sandbox) |
 
 ## Your Control
 
 You have full control over your data:
+
 - **Delete chat history** - Use "Clear" button in Chat
 - **Delete models** - Use "Delete" button in Models tab
 - **Uninstall** - Removes all app data (optional)
@@ -66,7 +77,7 @@ We may update this Privacy Policy. Changes will be posted in the app repository.
 ## Contact
 
 For privacy questions, please open an issue on our GitHub repository:
-https://github.com/avikeid2007/Kairos.local
+<https://github.com/avikeid2007/Kairos.local>
 
 ---
 
