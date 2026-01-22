@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KaiROS AI - Local AI Assistant for Windows</title>
+    <title>KaiROS AI - Local AI Assistant for Windows & Android</title>
     <meta name="description"
-        content="Run powerful AI models locally on your Windows PC. No cloud, no subscription, complete privacy. GPU accelerated with CUDA support.">
-    <meta name="keywords" content="AI, LLM, Local AI, Windows, Privacy, GPU, CUDA, ChatGPT alternative">
+        content="Run powerful AI models locally on Windows and Android. No cloud, no subscription, complete privacy. GPU accelerated with CUDA support.">
+    <meta name="keywords" content="AI, LLM, Local AI, Windows, Android, Privacy, GPU, CUDA, ChatGPT alternative">
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -23,11 +23,13 @@
                 <span>KaiROS AI</span>
             </div>
             <div class="nav-links">
-                <a href="#features">Features</a>
+                <a href="#comparison">Features</a>
+                <a href="#desktop">Desktop</a>
+                <a href="#mobile">Mobile</a>
                 <a href="#models">Models</a>
                 <a href="api.html">API Docs</a>
                 <a href="#download">Download</a>
-                <a href="https://github.com/avikeid2007/Kairos.local" class="btn-github">
+                <a href="https://github.com/avikeid2007/KaiROS-AI" class="btn-github">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path
                             d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
@@ -38,7 +40,7 @@
         </nav>
 
         <div class="hero-content">
-            <div class="hero-badge">🚀 Now available on Microsoft Store!</div>
+            <div class="hero-badge">🚀 Now available on Microsoft Store & Android!</div>
             <h1>Your Personal AI,<br><span class="gradient-text">Desktop & Mobile</span></h1>
             <p class="hero-subtitle">
                 Run powerful AI models locally on Windows and Android. No cloud, no subscription,
@@ -51,7 +53,7 @@
                     </svg>
                     Download Free
                 </a>
-                <a href="https://github.com/avikeid2007/Kairos.local" class="btn btn-secondary">
+                <a href="https://github.com/avikeid2007/KaiROS-AI" class="btn btn-secondary">
                     View on GitHub
                 </a>
             </div>
@@ -71,69 +73,219 @@
             </div>
         </div>
 
+        <!-- Feature Graphic Banner -->
+        <div class="feature-banner">
+            <img src="assets/kairos_feature_graphic_1768991900345.png" alt="KaiROS AI - Private. Local. Powerful."
+                class="feature-graphic">
+        </div>
+
         <div class="screenshot-gallery">
             <div class="gallery-tabs">
-                <button class="tab active" data-tab="model">📦 Models</button>
-                <button class="tab" data-tab="chat">💬 Chat</button>
-                <button class="tab" data-tab="rag">📚 RAG</button>
-                <button class="tab" data-tab="setting">⚙️ Settings</button>
+                <button class="tab active" data-tab="desktop">🖥️ Desktop</button>
+                <button class="tab" data-tab="mobile">📱 Mobile</button>
             </div>
             <div class="gallery-images">
-                <img src="assets/model-all.png" alt="Model Catalog" class="gallery-img active" id="img-model">
-                <img src="assets/chat.png" alt="Chat Interface" class="gallery-img" id="img-chat">
-                <img src="assets/RAG.png" alt="RAG Document Chat" class="gallery-img" id="img-rag">
-                <img src="assets/setting.png" alt="Settings" class="gallery-img" id="img-setting">
+                <div class="desktop-gallery active" id="gallery-desktop">
+                    <div class="desktop-tabs">
+                        <button class="desktop-tab active" data-img="model">📦 Models</button>
+                        <button class="desktop-tab" data-img="chat">💬 Chat</button>
+                        <button class="desktop-tab" data-img="rag">📚 RAG</button>
+                        <button class="desktop-tab" data-img="setting">⚙️ Settings</button>
+                    </div>
+                    <div class="desktop-images">
+                        <img src="assets/model-all.png" alt="Model Catalog" class="desktop-img active"
+                            id="desktop-img-model">
+                        <img src="assets/chat.png" alt="Chat Interface" class="desktop-img" id="desktop-img-chat">
+                        <img src="assets/RAG.png" alt="RAG Document Chat" class="desktop-img" id="desktop-img-rag">
+                        <img src="assets/setting.png" alt="Settings" class="desktop-img" id="desktop-img-setting">
+                    </div>
+                </div>
+                <div class="mobile-gallery" id="gallery-mobile">
+                    <div class="mobile-tabs">
+                        <button class="mobile-tab active" data-img="chat">💬 Chat</button>
+                        <button class="mobile-tab" data-img="models">📦 Models</button>
+                        <button class="mobile-tab" data-img="history">📜 History</button>
+                        <button class="mobile-tab" data-img="prompt">💭 Prompt</button>
+                        <button class="mobile-tab" data-img="settings">⚙️ Settings</button>
+                    </div>
+                    <div class="mobile-images">
+                        <img src="assets/Screenshot-mobile-Chat.png" alt="Mobile Chat" class="mobile-img active"
+                            id="mobile-img-chat">
+                        <img src="assets/Screenshot-Mobile-models.png" alt="Mobile Models" class="mobile-img"
+                            id="mobile-img-models">
+                        <img src="assets/Screenshot-mobile-History.png" alt="Mobile History" class="mobile-img"
+                            id="mobile-img-history">
+                        <img src="assets/Screenshot-mobile-system-prompt.png" alt="Mobile Prompt" class="mobile-img"
+                            id="mobile-img-prompt">
+                        <img src="assets/Screenshot-Mobile-settings.png" alt="Mobile Settings" class="mobile-img"
+                            id="mobile-img-settings">
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <script>
+        // Main gallery tabs (Desktop/Mobile)
         document.querySelectorAll('.gallery-tabs .tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.gallery-img').forEach(img => img.classList.remove('active'));
+                document.querySelectorAll('.gallery-tabs .tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.desktop-gallery, .mobile-gallery').forEach(g => g.classList.remove('active'));
                 tab.classList.add('active');
-                document.getElementById('img-' + tab.dataset.tab).classList.add('active');
+                document.getElementById('gallery-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Desktop sub-tabs
+        document.querySelectorAll('.desktop-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.desktop-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.desktop-img').forEach(img => img.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('desktop-img-' + tab.dataset.img).classList.add('active');
+            });
+        });
+
+        // Mobile sub-tabs
+        document.querySelectorAll('.mobile-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.mobile-img').forEach(img => img.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('mobile-img-' + tab.dataset.img).classList.add('active');
             });
         });
     </script>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
+    <!-- Feature Comparison Section -->
+    <section id="comparison" class="comparison">
         <div class="container">
-            <h2 class="section-title">Why KaiROS AI?</h2>
-            <p class="section-subtitle">Everything you need for local AI, nothing you don't.</p>
+            <h2 class="section-title">Desktop vs Mobile</h2>
+            <p class="section-subtitle">Choose the platform that fits your workflow</p>
+
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>🖥️ Windows Desktop</th>
+                            <th>📱 Android Mobile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Local LLM Inference</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="check">✅</span></td>
+                        </tr>
+                        <tr>
+                            <td>Model Manager</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="check">✅</span></td>
+                        </tr>
+                        <tr>
+                            <td>Chat History</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="check">✅</span></td>
+                        </tr>
+                        <tr>
+                            <td>System Prompt Editing</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="check">✅</span></td>
+                        </tr>
+                        <tr>
+                            <td>Custom Model Import</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="check">✅</span></td>
+                        </tr>
+                        <tr>
+                            <td>Markdown Rendering</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="check">✅</span></td>
+                        </tr>
+                        <tr class="highlight">
+                            <td>RAG (Document Chat)</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="check">✅</span></td>
+                        </tr>
+                        <tr class="highlight">
+                            <td>Local REST API</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="cross">❌</span></td>
+                        </tr>
+                        <tr class="highlight">
+                            <td>System Tray Support</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="cross">❌</span></td>
+                        </tr>
+                        <tr class="highlight">
+                            <td>DirectML & Vulkan</td>
+                            <td><span class="check">✅</span></td>
+                            <td><span class="cross">❌</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Desktop Features Section -->
+    <section id="desktop" class="platform-section desktop-section">
+        <div class="container">
+            <h2 class="section-title">🖥️ Desktop Version (Windows)</h2>
+            <p class="section-subtitle">The full-featured powerhouse for productivity and integration</p>
 
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>100% Private</h3>
-                    <p>Your conversations never leave your computer. No cloud, no tracking, no data collection.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>GPU Accelerated</h3>
-                    <p>CUDA 12 support for NVIDIA GPUs. Get blazing fast responses with hardware acceleration.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📦</div>
-                    <h3>31 AI Models</h3>
-                    <p>Pre-configured models from 9 organizations: Qwen, Google, Meta, Microsoft, and more.</p>
+                    <div class="feature-icon">📚</div>
+                    <h3>RAG Document Chat</h3>
+                    <p>Chat with your PDF, DOCX, and TXT files locally. Get answers from your documents.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🔌</div>
                     <h3>Local REST API</h3>
-                    <p>Built-in API server for developers. Integrate with VS Code Continue, LM Studio, and more.</p>
+                    <p>Integrate with VS Code (Continue), LM Studio, or build your own AI-powered apps.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🗔</div>
                     <h3>System Tray</h3>
-                    <p>Minimize to system tray when API is running. Keep your AI available in the background.</p>
+                    <p>Keep your AI running in the background. Quick access whenever you need it.</p>
                 </div>
                 <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Advanced GPU Support</h3>
+                    <p>Full support for CUDA 12, DirectML, and Vulkan backends for maximum performance.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile Features Section -->
+    <section id="mobile" class="platform-section mobile-section">
+        <div class="container">
+            <h2 class="section-title">📱 Mobile Version (Android)</h2>
+            <p class="section-subtitle">AI power in your pocket - optimized for on-the-go usage</p>
+
+            <div class="features-grid">
+                <div class="feature-card">
                     <div class="feature-icon">🌐</div>
-                    <h3>Works Offline</h3>
-                    <p>No internet required after downloading models. Use AI anywhere, anytime.</p>
+                    <h3>Offline Capable</h3>
+                    <p>Run LLMs anywhere, even without internet connection (after model download).</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔋</div>
+                    <h3>Battery Efficient</h3>
+                    <p>Optimized for mobile processors. Get AI help without draining your battery.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Clean UI</h3>
+                    <p>Simplified interface focused on chat and quick interactions. Touch-optimized.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Chat History</h3>
+                    <p>Save and resume your conversations anytime. Never lose context.</p>
                 </div>
             </div>
         </div>
@@ -203,7 +355,7 @@
             <p class="section-subtitle">Download KaiROS AI and start chatting with AI privately.</p>
 
             <div class="download-options">
-                <a href="https://github.com/avikeid2007/Kairos.local/releases/latest" class="download-card">
+                <a href="https://github.com/avikeid2007/KaiROS-AI/releases/latest" class="download-card">
                     <div class="download-icon">📦</div>
                     <h3>Windows Installer</h3>
                     <p>Self-contained EXE installer. No .NET required.</p>
@@ -216,7 +368,7 @@
                     <p>Auto-updates and easy install.</p>
                     <span class="download-btn">Get it now</span>
                 </a>
-                <a href="https://github.com/avikeid2007/Kairos.local/releases/latest" class="download-card">
+                <a href="https://github.com/avikeid2007/KaiROS-AI/releases/latest" class="download-card">
                     <div class="download-icon">📱</div>
                     <h3>Android APK</h3>
                     <p>Install directly on your Android device.</p>
@@ -228,7 +380,7 @@
                     <p>Soon available on Google Play Store.</p>
                     <span class="download-btn">Coming Soon</span>
                 </a>
-                <a href="https://github.com/avikeid2007/Kairos.local" class="download-card">
+                <a href="https://github.com/avikeid2007/KaiROS-AI" class="download-card">
                     <div class="download-icon">💻</div>
                     <h3>Build from Source</h3>
                     <p>Clone the repo and build it yourself.</p>
@@ -258,14 +410,14 @@
                 </div>
                 <div class="footer-links">
                     <h4>Links</h4>
-                    <a href="https://github.com/avikeid2007/Kairos.local">GitHub</a>
-                    <a href="https://github.com/avikeid2007/Kairos.local/releases">Releases</a>
-                    <a href="https://github.com/avikeid2007/Kairos.local/issues">Report Issue</a>
+                    <a href="https://github.com/avikeid2007/KaiROS-AI">GitHub</a>
+                    <a href="https://github.com/avikeid2007/KaiROS-AI/releases">Releases</a>
+                    <a href="https://github.com/avikeid2007/KaiROS-AI/issues">Report Issue</a>
                 </div>
                 <div class="footer-links">
                     <h4>Legal</h4>
-                    <a href="https://github.com/avikeid2007/Kairos.local/blob/main/LICENSE">MIT License</a>
-                    <a href="https://github.com/avikeid2007/Kairos.local/blob/main/PRIVACY_POLICY.md">Privacy Policy</a>
+                    <a href="https://github.com/avikeid2007/KaiROS-AI/blob/main/LICENSE">MIT License</a>
+                    <a href="https://github.com/avikeid2007/KaiROS-AI/blob/main/PRIVACY_POLICY.md">Privacy Policy</a>
                 </div>
             </div>
             <div class="footer-bottom">

@@ -77,7 +77,7 @@ We may update this Privacy Policy. Changes will be posted in the app repository.
 ## Contact
 
 For privacy questions, please open an issue on our GitHub repository:
-<https://github.com/avikeid2007/Kairos.local>
+<https://github.com/avikeid2007/KaiROS-AI>
 
 ---
 
