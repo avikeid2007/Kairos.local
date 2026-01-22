@@ -86,8 +86,11 @@ jobs:
         # Verify Assets exist (Debug)
         Get-ChildItem $assetsDest
         
-        # Update version in manifest if needed (assuming manifest has placeholder or correct version)
-        # Note: Package.appxmanifest usually requires 4-part version (1.0.0.0)
+        # Update version in manifest (4-part version required)
+        $manifestPath = "./publish/AppxManifest.xml"
+        $manifestContent = Get-Content $manifestPath -Raw
+        $manifestContent = $manifestContent -replace 'Version="[^"]*"', "Version=`"$version.0`""
+        Set-Content $manifestPath -Value $manifestContent
         
         $msixName = "KaiROS-AI-v$version.msix"
         & $makeAppx pack /d ./publish /p $msixName /o
