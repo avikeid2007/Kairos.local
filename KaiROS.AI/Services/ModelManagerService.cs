@@ -29,6 +29,8 @@ public class ModelManagerService : IModelManagerService
     public event EventHandler? ModelUnloaded;
     public event EventHandler<double>? ModelLoadProgress;
 
+    private string _lastModelSettingsPath;
+
     public ModelManagerService(IConfiguration configuration, IDownloadService downloadService, IDatabaseService databaseService, IHardwareDetectionService hardwareService)
     {
         _configuration = configuration;
@@ -39,6 +41,7 @@ public class ModelManagerService : IModelManagerService
         // Use LocalAppData for MSIX compatibility (installation folder is read-only)
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         _modelsDirectory = Path.Combine(localAppData, "KaiROS.AI", "Models");
+        _lastModelSettingsPath = Path.Combine(localAppData, "KaiROS.AI", "last_model.txt");
         Directory.CreateDirectory(_modelsDirectory);
     }
 
@@ -99,6 +102,37 @@ public class ModelManagerService : IModelManagerService
             }
 
             _models.Add(model);
+        }
+
+        // Auto-load last used model
+        await LoadLastUsedModelAsync();
+    }
+
+    private async Task LoadLastUsedModelAsync()
+    {
+        try
+        {
+            if (File.Exists(_lastModelSettingsPath))
+            {
+                var lastModelName = File.ReadAllText(_lastModelSettingsPath).Trim();
+                var modelToLoad = _models.FirstOrDefault(m => m.Name == lastModelName);
+
+                if (modelToLoad != null && modelToLoad.IsDownloaded)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[KaiROS] Auto-loading last used model: {modelToLoad.Name}");
+                    // Load in background so we don't block startup UI too much, but we need to await it partly or fire and forget?
+                    // Better to fire and forget or let the UI handle the loading state via events if InitializeAsync is awaited during splash.
+                    // Since SetActiveModelAsync handles its own threading, we can await it here if we want startup to wait,
+                    // OR we can just fire it. The user specifically asked for "On run of the App", so waiting is safer to ensure it's ready.
+                    // However, we don't want to freeze the UI.
+                    // Let's attempt to load it.
+                    await SetActiveModelAsync(modelToLoad);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[KaiROS] Failed to auto-load last model: {ex.Message}");
         }
     }
 
@@ -206,6 +240,13 @@ public class ModelManagerService : IModelManagerService
     {
         if (!model.IsDownloaded || model.LocalPath == null)
             return false;
+
+        // Save as last used model
+        try
+        {
+            File.WriteAllText(_lastModelSettingsPath, model.Name);
+        }
+        catch { /* ignore save errors */ }
 
         if (!File.Exists(model.LocalPath))
         {

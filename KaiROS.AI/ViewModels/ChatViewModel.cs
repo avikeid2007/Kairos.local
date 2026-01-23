@@ -549,5 +549,21 @@ public partial class ChatMessageViewModel : ObservableObject
         Content = cleaned;
         Message.Content = Content;
     }
+
+    [RelayCommand]
+    private void CopyContent()
+    {
+        if (!string.IsNullOrEmpty(Content))
+        {
+            try
+            {
+                System.Windows.Clipboard.SetText(Content);
+            }
+            catch (Exception)
+            {
+                // Clipboard access can fail if another app is using it
+            }
+        }
+    }
 }
 

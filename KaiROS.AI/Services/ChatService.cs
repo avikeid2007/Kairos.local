@@ -139,7 +139,7 @@ public class ChatService : IChatService
 
         var inferenceParams = new InferenceParams
         {
-            MaxTokens = 256,
+            MaxTokens = 4096,
             AntiPrompts = new[] { "User:", "\nUser:", "###", "Human:", "\nHuman:", "### User", "### Human" }
         };
 

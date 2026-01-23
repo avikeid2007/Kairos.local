@@ -8,12 +8,12 @@ public class MarkdownParser
     private static readonly Regex CodeBlockPattern = new(
         @"```(\w*)\n?([\s\S]*?)```",
         RegexOptions.Compiled);
-    
+
     // Pattern to match inline code: `code`
     private static readonly Regex InlineCodePattern = new(
         @"`([^`]+)`",
         RegexOptions.Compiled);
-    
+
     /// <summary>
     /// Parses markdown content and returns a list of content segments
     /// </summary>
@@ -21,10 +21,10 @@ public class MarkdownParser
     {
         var segments = new List<MarkdownSegment>();
         var lastIndex = 0;
-        
+
         // Find all code blocks
         var matches = CodeBlockPattern.Matches(content);
-        
+
         foreach (Match match in matches)
         {
             // Add text before this code block
@@ -40,26 +40,40 @@ public class MarkdownParser
                     });
                 }
             }
-            
+
             // Add the code block
             var language = match.Groups[1].Value;
             var code = match.Groups[2].Value.Trim();
-            
+
             segments.Add(new MarkdownSegment
             {
                 Type = SegmentType.CodeBlock,
                 Content = code,
                 Language = string.IsNullOrEmpty(language) ? "code" : language
             });
-            
+
             lastIndex = match.Index + match.Length;
         }
-        
-        // Add remaining text
+
+        // Check for unclosed code block at the end (for streaming)
         if (lastIndex < content.Length)
         {
             var remaining = content.Substring(lastIndex);
-            if (!string.IsNullOrWhiteSpace(remaining))
+            // If the remaining text starts with ``` but matches failed (unclosed), treat as code block
+            var unclosedMatch = Regex.Match(remaining, @"^```(\w*)\n?([\s\S]*)");
+            if (unclosedMatch.Success)
+            {
+                var language = unclosedMatch.Groups[1].Value;
+                var code = unclosedMatch.Groups[2].Value; // No trim at end to preserve typing
+
+                segments.Add(new MarkdownSegment
+                {
+                    Type = SegmentType.CodeBlock,
+                    Content = code,
+                    Language = string.IsNullOrEmpty(language) ? "code" : language
+                });
+            }
+            else if (!string.IsNullOrWhiteSpace(remaining))
             {
                 segments.Add(new MarkdownSegment
                 {
@@ -68,20 +82,32 @@ public class MarkdownParser
                 });
             }
         }
-        
-        // If no code blocks were found, return entire content as text
-        if (segments.Count == 0 && !string.IsNullOrWhiteSpace(content))
+        else if (segments.Count == 0 && !string.IsNullOrWhiteSpace(content))
         {
-            segments.Add(new MarkdownSegment
+            // Fallback for single unclosed block at start
+            var unclosedMatch = Regex.Match(content, @"^```(\w*)\n?([\s\S]*)");
+            if (unclosedMatch.Success)
             {
-                Type = SegmentType.Text,
-                Content = content
-            });
+                segments.Add(new MarkdownSegment
+                {
+                    Type = SegmentType.CodeBlock,
+                    Content = unclosedMatch.Groups[2].Value,
+                    Language = unclosedMatch.Groups[1].Value
+                });
+            }
+            else
+            {
+                segments.Add(new MarkdownSegment
+                {
+                    Type = SegmentType.Text,
+                    Content = content
+                });
+            }
         }
-        
+
         return segments;
     }
-    
+
     /// <summary>
     /// Detects if content contains code blocks
     /// </summary>
@@ -89,7 +115,7 @@ public class MarkdownParser
     {
         return CodeBlockPattern.IsMatch(content);
     }
-    
+
     /// <summary>
     /// Attempts to detect programming language from code content
     /// </summary>
@@ -110,7 +136,7 @@ public class MarkdownParser
             return "css";
         if (code.Contains("#!/bin/bash") || code.Contains("echo ") || code.Contains("$"))
             return "bash";
-            
+
         return "code";
     }
 }

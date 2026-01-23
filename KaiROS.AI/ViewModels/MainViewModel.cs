@@ -10,30 +10,30 @@ public partial class MainViewModel : ViewModelBase
 {
     private readonly IModelManagerService _modelManager;
     private readonly IHardwareDetectionService _hardwareService;
-    
+
     [ObservableProperty]
     private ViewModelBase? _currentView;
-    
+
     [ObservableProperty]
     private string _statusText = "Ready";
-    
+
     [ObservableProperty]
     private string _hardwareInfo = "Detecting hardware...";
-    
+
     [ObservableProperty]
     private string? _activeModelName;
-    
+
     [ObservableProperty]
     private HardwareInfo? _hardware;
-    
+
     [ObservableProperty]
     private int _selectedNavigationIndex;
-    
+
     public ModelCatalogViewModel CatalogViewModel { get; }
     public ChatViewModel ChatViewModel { get; }
     public SettingsViewModel SettingsViewModel { get; }
     public DocumentViewModel DocumentViewModel { get; }
-    
+
     public MainViewModel(
         IModelManagerService modelManager,
         IHardwareDetectionService hardwareService,
@@ -48,47 +48,63 @@ public partial class MainViewModel : ViewModelBase
         ChatViewModel = chatViewModel;
         SettingsViewModel = settingsViewModel;
         DocumentViewModel = documentViewModel;
-        
+
         _modelManager.ModelLoaded += (s, m) =>
         {
+            // Update UI state
             ActiveModelName = m.DisplayName;
             StatusText = $"Model loaded: {m.DisplayName}";
+
+            // Auto-navigate to Chat whenever a model is loaded (including auto-load on startup)
+            // Use Dispatcher to ensure UI update if event comes from background thread
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                SelectedNavigationIndex = 1;
+            });
         };
-        
+
         _modelManager.ModelUnloaded += (s, e) =>
         {
             ActiveModelName = null;
             StatusText = "Model unloaded";
         };
-        
-        // Auto-navigate to Chat when model is loaded
-        CatalogViewModel.ModelActivated += (s, e) =>
-        {
-            SelectedNavigationIndex = 1; // Navigate to Chat
-        };
     }
-    
+
     public override async Task InitializeAsync()
     {
         IsLoading = true;
         StatusText = "Initializing...";
-        
+
         try
         {
             // Detect hardware
             Hardware = await _hardwareService.DetectHardwareAsync();
             HardwareInfo = Hardware.StatusMessage;
-            
+
             // Initialize model catalog
             await _modelManager.InitializeAsync();
-            
+
             // Initialize child view models
             await CatalogViewModel.InitializeAsync();
             await ChatViewModel.InitializeAsync();
             await SettingsViewModel.InitializeAsync();
             await DocumentViewModel.InitializeAsync();
-            
-            CurrentView = CatalogViewModel;
+
+            await DocumentViewModel.InitializeAsync();
+
+            // If a model was auto-loaded, SelectedNavigationIndex would be 1 (Chat)
+            // But we shouldn't overwrite it blindly.
+            if (_modelManager.ActiveModel != null)
+            {
+                SelectedNavigationIndex = 1; // Ensure UI reflects this
+                CurrentView = ChatViewModel;
+            }
+            else
+            {
+                SelectedNavigationIndex = 0;
+                CurrentView = CatalogViewModel;
+            }
+
             StatusText = "Ready";
         }
         catch (Exception ex)
@@ -101,7 +117,7 @@ public partial class MainViewModel : ViewModelBase
             IsLoading = false;
         }
     }
-    
+
     partial void OnSelectedNavigationIndexChanged(int value)
     {
         CurrentView = value switch
@@ -113,16 +129,16 @@ public partial class MainViewModel : ViewModelBase
             _ => CatalogViewModel
         };
     }
-    
+
     [RelayCommand]
     private void NavigateToCatalog() => SelectedNavigationIndex = 0;
-    
+
     [RelayCommand]
     private void NavigateToChat() => SelectedNavigationIndex = 1;
-    
+
     [RelayCommand]
     private void NavigateToDocuments() => SelectedNavigationIndex = 2;
-    
+
     [RelayCommand]
     private void NavigateToSettings() => SelectedNavigationIndex = 3;
 }
