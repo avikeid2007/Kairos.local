@@ -11,10 +11,12 @@ public class ChatService : IChatService
 {
     private readonly ModelManagerService _modelManager;
     private readonly IDocumentService _documentService;
+    private readonly IWebSearchService _webSearchService;
     private LLamaContext? _context;
     private InteractiveExecutor? _executor;
     private InferenceStats _lastStats = new();
     private uint _currentContextSize;
+    private bool _isSystemPromptSent = false;
 
     public bool IsModelLoaded => _modelManager.ActiveModel != null && _context != null;
     public InferenceStats LastStats => _lastStats;
@@ -23,10 +25,11 @@ public class ChatService : IChatService
     public event EventHandler<string>? TokenGenerated;
     public event EventHandler<InferenceStats>? StatsUpdated;
 
-    public ChatService(ModelManagerService modelManager, IDocumentService documentService)
+    public ChatService(ModelManagerService modelManager, IDocumentService documentService, IWebSearchService webSearchService)
     {
         _modelManager = modelManager;
         _documentService = documentService;
+        _webSearchService = webSearchService;
         _modelManager.ModelLoaded += OnModelLoaded;
         _modelManager.ModelUnloaded += OnModelUnloaded;
     }
@@ -53,6 +56,7 @@ public class ChatService : IChatService
         });
 
         _executor = new InteractiveExecutor(_context);
+        _isSystemPromptSent = false;
     }
 
     private void DisposeContext()
@@ -60,20 +64,43 @@ public class ChatService : IChatService
         _executor = null;
         _context?.Dispose();
         _context = null;
+        _isSystemPromptSent = false;
     }
 
-    public async Task<string> GenerateResponseAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default)
+    public void ClearContext()
     {
-        var response = new StringBuilder();
-        await foreach (var token in GenerateResponseStreamAsync(messages, cancellationToken))
+        if (_context != null)
         {
-            response.Append(token);
+            DisposeContext();
+            InitializeContext();
         }
-        return response.ToString();
     }
+
+    // Interface Implementations
+    public Task<string> GenerateResponseAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default)
+        => GenerateResponseAsync(messages, false, cancellationToken);
+
+    public async Task<string> GenerateResponseAsync(IEnumerable<ChatMessage> messages, bool useWebSearch, CancellationToken cancellationToken = default)
+    {
+        var sb = new StringBuilder();
+        await foreach (var token in GenerateResponseStreamAsync(messages, useWebSearch, null, false, cancellationToken))
+        {
+            sb.Append(token);
+        }
+        return sb.ToString();
+    }
+
+    public IAsyncEnumerable<string> GenerateResponseStreamAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default)
+        => GenerateResponseStreamAsync(messages, false, null, false, cancellationToken);
+
+    public IAsyncEnumerable<string> GenerateResponseStreamAsync(IEnumerable<ChatMessage> messages, bool useWebSearch, CancellationToken cancellationToken = default)
+        => GenerateResponseStreamAsync(messages, useWebSearch, null, false, cancellationToken);
 
     public async IAsyncEnumerable<string> GenerateResponseStreamAsync(
         IEnumerable<ChatMessage> messages,
+        bool useWebSearch,
+        string? sessionContext,
+        bool useGlobalRag,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (_executor == null || _context == null)
@@ -82,14 +109,40 @@ public class ChatService : IChatService
             yield break;
         }
 
-        var prompt = BuildPrompt(messages, _documentService);
+        string webContext = "";
+
+        // Handle Web Search
+        if (useWebSearch)
+        {
+            var lastUserMessage = messages.LastOrDefault(m => m.Role == ChatRole.User);
+            if (lastUserMessage != null)
+            {
+                yield return "[Searching web...]";
+                var searchResult = await PerformWebSearchAsync(lastUserMessage.Content, cancellationToken);
+                yield return searchResult.Status;
+                webContext = searchResult.Context;
+            }
+        }
+
+        string prompt;
+        if (!_isSystemPromptSent)
+        {
+            // First turn: Include System Prompt + Context + First User Message
+            prompt = BuildFullPrompt(messages, _documentService, webContext, sessionContext, useGlobalRag);
+            _isSystemPromptSent = true;
+        }
+        else
+        {
+            // Follow-up turn: Only new User Message
+            prompt = BuildFollowUpPrompt(messages, webContext);
+        }
+
         var inferenceParams = new InferenceParams
         {
-            MaxTokens = 256,
+            MaxTokens = 4096,
             AntiPrompts = new[] { "User:", "\nUser:", "###", "Human:", "\nHuman:", "### User", "### Human" }
         };
 
-        // Strings to filter out from output
         var unwantedStrings = new[] {
             "###", "User:", "Human:", "Assistant:", "### ", "\n### ",
             "## OUTPUT:", "##OUTPUT:", "## OUTPUT", "##OUTPUT",
@@ -100,124 +153,129 @@ public class ChatService : IChatService
         var stopwatch = Stopwatch.StartNew();
         int tokenCount = 0;
         var startMemory = GC.GetTotalMemory(false);
-        var buffer = new StringBuilder();
 
         await foreach (var token in _executor.InferAsync(prompt, inferenceParams, cancellationToken))
         {
             tokenCount++;
-
-            // Filter out unwanted strings
             var cleanToken = token;
-            foreach (var unwanted in unwantedStrings)
-            {
-                cleanToken = cleanToken.Replace(unwanted, "");
-            }
+            foreach (var unwanted in unwantedStrings) cleanToken = cleanToken.Replace(unwanted, "");
 
-            // Only yield non-empty tokens
             if (!string.IsNullOrEmpty(cleanToken))
             {
                 TokenGenerated?.Invoke(this, cleanToken);
                 yield return cleanToken;
             }
 
-            // Update stats periodically
-            if (tokenCount % 10 == 0)
-            {
-                UpdateStats(stopwatch.Elapsed, tokenCount, startMemory);
-            }
+            if (tokenCount % 10 == 0) UpdateStats(stopwatch.Elapsed, tokenCount, startMemory);
         }
 
         stopwatch.Stop();
         UpdateStats(stopwatch.Elapsed, tokenCount, startMemory);
     }
 
+    private async Task<(string Context, string Status)> PerformWebSearchAsync(string query, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var results = await _webSearchService.SearchAsync(query, 3, cancellationToken);
+            if (results.Count > 0)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine("Web Search Results:");
+                var topResults = results.Take(2).ToList();
+                foreach (var result in topResults)
+                {
+                    var content = await _webSearchService.GetPageContentAsync(result.Link, cancellationToken);
+                    sb.AppendLine($"--- Source: {result.Title} ({result.Link}) ---");
+                    if (!string.IsNullOrEmpty(content)) sb.AppendLine(content);
+                    else sb.AppendLine($"Snippet: {result.Snippet}");
+                    sb.AppendLine("--- End Source ---\n");
+                }
+                return (sb.ToString(), "\r[Found info] ");
+            }
+            else
+            {
+                return ("", "\r[No results] ");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Web search failed: {ex}");
+            return ("", "\r[Search failed] ");
+        }
+    }
+
+    // New helper method for stats
     private void UpdateStats(TimeSpan elapsed, int tokenCount, long startMemory)
     {
+        var usedMemory = GC.GetTotalMemory(false) - startMemory;
         _lastStats = new InferenceStats
         {
-            GeneratedTokens = tokenCount,
-            TotalTokens = tokenCount,
             ElapsedTime = elapsed,
-            TokensPerSecond = elapsed.TotalSeconds > 0 ? tokenCount / elapsed.TotalSeconds : 0,
-            MemoryUsageBytes = GC.GetTotalMemory(false) - startMemory,
-            BackendInUse = "CPU",
-            ContextSize = _currentContextSize,
-            GpuLayers = _modelManager.CurrentGpuLayers
+            TokensPerSecond = tokenCount / (elapsed.TotalSeconds > 0 ? elapsed.TotalSeconds : 1),
+            GeneratedTokens = tokenCount,
+            MemoryUsageBytes = usedMemory > 0 ? usedMemory : 0
         };
-
         StatsUpdated?.Invoke(this, _lastStats);
     }
 
-    private static string BuildPrompt(IEnumerable<ChatMessage> messages, IDocumentService documentService)
+    private static string BuildFullPrompt(IEnumerable<ChatMessage> messages, IDocumentService documentService, string webContext = "", string? sessionContext = null, bool useGlobalRag = false)
     {
         var sb = new StringBuilder();
         var messageList = messages.ToList();
 
-        // Get user's latest message to find relevant context
         var latestUserMessage = messageList.LastOrDefault(m => m.Role == ChatRole.User);
         string documentContext = string.Empty;
 
-        System.Diagnostics.Debug.WriteLine($"[RAG] BuildPrompt called. Has user message: {latestUserMessage != null}, Loaded docs: {documentService.LoadedDocuments.Count}");
+        // Priority 1: Session Specific Context
+        if (!string.IsNullOrEmpty(sessionContext))
+            documentContext += "Attached Document Content:\n" + sessionContext + "\n\n";
 
-        if (latestUserMessage != null && documentService.LoadedDocuments.Count > 0)
+        // Priority 2: Global RAG
+        if (useGlobalRag && latestUserMessage != null && documentService.LoadedDocuments.Count > 0)
         {
-            documentContext = documentService.GetContextForQuery(latestUserMessage.Content, 3);
-            System.Diagnostics.Debug.WriteLine($"[RAG] Context retrieved: {documentContext?.Length ?? 0} characters");
-            if (!string.IsNullOrEmpty(documentContext))
-            {
-                System.Diagnostics.Debug.WriteLine($"[RAG] Context preview: {documentContext.Substring(0, Math.Min(200, documentContext.Length))}...");
-            }
+            var globalContext = documentService.GetContextForQuery(latestUserMessage.Content, 3);
+            if (!string.IsNullOrEmpty(globalContext))
+                documentContext += "Global Knowledge Base:\n" + globalContext + "\n\n";
         }
 
-        foreach (var msg in messageList)
-        {
-            switch (msg.Role)
-            {
-                case ChatRole.System:
-                    var systemContent = msg.Content;
-                    if (!string.IsNullOrEmpty(documentContext))
-                    {
-                        systemContent += "\n\nContext:\n" + documentContext;
-                    }
-                    sb.AppendLine($"### System:\n{systemContent}\n");
-                    break;
-                case ChatRole.User:
-                    // Only include the last user message to prevent fake conversation generation
-                    break;
-                case ChatRole.Assistant:
-                    // Skip previous assistant messages
-                    break;
-            }
-        }
+        string combinedContext = "";
+        if (!string.IsNullOrEmpty(documentContext)) combinedContext += "Context:\n" + documentContext + "\n\n";
+        if (!string.IsNullOrEmpty(webContext)) combinedContext += webContext + "\n\n";
 
-        // Add only the last user message
-        var lastUser = messageList.LastOrDefault(m => m.Role == ChatRole.User);
-        if (lastUser != null)
-        {
-            sb.AppendLine($"### User:\n{lastUser.Content}\n");
-        }
+        var systemMsg = messageList.FirstOrDefault(m => m.Role == ChatRole.System);
+        var systemContent = systemMsg?.Content ?? "You are a helpful assistant. Be concise and direct.";
 
-        // If there's document context but no system message, add default system
-        if (!messageList.Any(m => m.Role == ChatRole.System))
+        if (!string.IsNullOrEmpty(combinedContext))
+            systemContent += "\n\n" + combinedContext;
+
+        sb.AppendLine($"### System:\n{systemContent}\n");
+
+        if (latestUserMessage != null)
         {
-            var sysPrompt = "You are a helpful assistant. Be concise and direct.";
-            if (!string.IsNullOrEmpty(documentContext))
-            {
-                sysPrompt += "\n\nContext:\n" + documentContext;
-            }
-            sb.Insert(0, $"### System:\n{sysPrompt}\n\n");
+            sb.AppendLine($"### User:\n{latestUserMessage.Content}\n");
         }
 
         sb.AppendLine("### Assistant:");
         return sb.ToString();
     }
 
-    public void ClearContext()
+    private static string BuildFollowUpPrompt(IEnumerable<ChatMessage> messages, string webContext = "")
     {
-        if (_context != null)
+        var sb = new StringBuilder();
+        var latestUserMessage = messages.LastOrDefault(m => m.Role == ChatRole.User);
+
+        if (latestUserMessage != null)
         {
-            DisposeContext();
-            InitializeContext();
+            if (!string.IsNullOrEmpty(webContext))
+            {
+                sb.AppendLine($"### System:\n[Additional Information]\n{webContext}\n");
+            }
+
+            sb.AppendLine($"### User:\n{latestUserMessage.Content}\n");
         }
+
+        sb.AppendLine("### Assistant:");
+        return sb.ToString();
     }
 }

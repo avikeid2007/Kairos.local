@@ -1,10 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+
 using KaiROS.AI.Models;
 using KaiROS.AI.Services;
+
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.Json;
 
 namespace KaiROS.AI.ViewModels;
 
@@ -27,6 +28,9 @@ public partial class ChatViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _userInput = string.Empty;
+
+    [ObservableProperty]
+    private bool _isWebSearchEnabled;
 
     [ObservableProperty]
     private string _systemPrompt = "You are a helpful, friendly AI assistant. Be concise and clear.";
@@ -70,12 +74,33 @@ public partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private string _searchText = string.Empty;
 
-    public ChatViewModel(IChatService chatService, IModelManagerService modelManager, ISessionService sessionService, IExportService exportService)
+    [ObservableProperty]
+    private bool _isGlobalRagEnabled;
+
+    [ObservableProperty]
+    private bool _isEnterToSendEnabled;
+
+    [ObservableProperty]
+    private string _currentDocumentName = string.Empty;
+
+    [ObservableProperty]
+    private int _globalRagDocumentCount;
+
+    private string _currentDocumentContext = string.Empty;
+
+    private readonly IDocumentService _documentService;
+
+    public ChatViewModel(IChatService chatService, IModelManagerService modelManager, ISessionService sessionService, IExportService exportService, IDocumentService documentService)
     {
         _chatService = chatService;
         _modelManager = modelManager;
         _sessionService = sessionService;
         _exportService = exportService;
+        _documentService = documentService;
+
+        IsWebSearchEnabled = false; // Default to off
+        IsGlobalRagEnabled = false; // Default to off
+        IsEnterToSendEnabled = true; // Default to On (Ctrl+Enter to send)
 
         _chatService.StatsUpdated += OnStatsUpdated;
         _modelManager.ModelLoaded += OnModelLoaded;
@@ -86,6 +111,7 @@ public partial class ChatViewModel : ViewModelBase
     {
         await _sessionService.InitializeAsync();
         await LoadSessionsAsync();
+        GlobalRagDocumentCount = _documentService.LoadedDocuments.Count;
     }
 
     private async Task LoadSessionsAsync()
@@ -121,6 +147,64 @@ public partial class ChatViewModel : ViewModelBase
             ContextWindow = stats.ContextSize > 0 ? $"{stats.ContextSize:N0}" : "N/A";
             GpuLayers = stats.GpuLayers >= 0 ? stats.GpuLayers.ToString() : "N/A";
         });
+    }
+
+    [RelayCommand]
+    private async Task UploadDocument()
+    {
+        try
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "All Supported Files|*.txt;*.md;*.json;*.cs;*.xml;*.html;*.pdf;*.docx;*.doc|PDF Documents|*.pdf|Word Documents|*.docx;*.doc|Text Documents|*.txt;*.md;*.json;*.cs;*.xml;*.html|All Files|*.*",
+                Title = "Select a document to chat with"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                var filePath = openFileDialog.FileName;
+                var fileName = Path.GetFileName(filePath);
+
+                if (File.Exists(filePath))
+                {
+                    // Use DocumentService to parse content (supports PDF, Docx, etc.)
+                    var extractedContent = await _documentService.GetDocumentContentAsync(filePath);
+
+                    if (string.IsNullOrWhiteSpace(extractedContent))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ChatViewModel] WARNING: No text extracted from {fileName}");
+                        // You might want to bind this to a UI property to show the user
+                        _currentDocumentContext = string.Empty;
+                        CurrentDocumentName = string.Empty;
+                        // Assuming there is a way to show error, possibly reuse existing mechanism or just log for now
+                        // Ideally: ErrorMessage = "No text found in document. It might be scanned/image-based.";
+                    }
+                    else
+                    {
+                        _currentDocumentContext = extractedContent;
+                        CurrentDocumentName = fileName;
+                        System.Diagnostics.Debug.WriteLine($"[ChatViewModel] Extracted {_currentDocumentContext.Length} chars from {fileName}");
+
+                        // Optional: trim if too large
+                        if (_currentDocumentContext.Length > 50000)
+                        {
+                            _currentDocumentContext = _currentDocumentContext.Substring(0, 50000);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to upload: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveDocument()
+    {
+        _currentDocumentContext = string.Empty;
+        CurrentDocumentName = string.Empty;
     }
 
     [RelayCommand]
@@ -177,7 +261,12 @@ public partial class ChatViewModel : ViewModelBase
 
         try
         {
-            await foreach (var token in _chatService.GenerateResponseStreamAsync(allMessages, _currentInferenceCts.Token))
+            await foreach (var token in _chatService.GenerateResponseStreamAsync(
+                allMessages,
+                IsWebSearchEnabled,
+                _currentDocumentContext, // Pass uploaded doc
+                IsGlobalRagEnabled,      // Pass global RAG toggle
+                _currentInferenceCts.Token))
             {
                 assistantVm.AppendContent(token);
             }
@@ -224,6 +313,7 @@ public partial class ChatViewModel : ViewModelBase
         TotalTokens = 0;
         MemoryUsage = "N/A";
         ElapsedTime = "0s";
+        RemoveDocument(); // Clear uploaded doc on reset
     }
 
     [RelayCommand]
@@ -237,6 +327,7 @@ public partial class ChatViewModel : ViewModelBase
         TotalTokens = 0;
         MemoryUsage = "N/A";
         ElapsedTime = "0s";
+        RemoveDocument(); // Clear uploaded doc on new session
     }
 
     [RelayCommand]
@@ -457,6 +548,22 @@ public partial class ChatMessageViewModel : ObservableObject
         cleaned = cleaned.Trim();
         Content = cleaned;
         Message.Content = Content;
+    }
+
+    [RelayCommand]
+    private void CopyContent()
+    {
+        if (!string.IsNullOrEmpty(Content))
+        {
+            try
+            {
+                System.Windows.Clipboard.SetText(Content);
+            }
+            catch (Exception)
+            {
+                // Clipboard access can fail if another app is using it
+            }
+        }
     }
 }
 

@@ -215,11 +215,30 @@
                                         CornerRadius="16,16,16,4" 
                                         Padding="16,12">
                                     <StackPanel>
-                                        <TextBlock Text="🤖 Assistant" 
-                                                   Foreground="{StaticResource PrimaryLightBrush}"
-                                                   FontSize="12"
-                                                   FontWeight="SemiBold"
-                                                   Margin="0,0,0,8"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <TextBlock Text="🤖 Assistant" 
+                                                       Foreground="{StaticResource PrimaryLightBrush}"
+                                                       FontSize="12"
+                                                       FontWeight="SemiBold"
+                                                       VerticalAlignment="Center"/>
+                                            
+                                            <!-- Copy Button -->
+                                            <Button  Grid.Column="1"
+                                                     Command="{Binding CopyContentCommand}"
+                                                     Style="{StaticResource IconButton}"
+                                                     Width="24" Height="24"
+                                                     Padding="4"
+                                                     ToolTip="Copy Response">
+                                                <Path Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                                                      Fill="{StaticResource TextSecondaryBrush}"
+                                                      Stretch="Uniform"/>
+                                            </Button>
+                                        </Grid>
                                         <ContentPresenter Content="{Binding Content, Converter={StaticResource MarkdownConverter}}"/>
                                         <TextBlock Text="{Binding Timestamp}" 
                                                    Foreground="{StaticResource TextMutedBrush}"
@@ -260,19 +279,88 @@
                 CornerRadius="12" 
                 Padding="16">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
+                <Grid Grid.ColumnSpan="2" Margin="0,0,0,8">
+                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                         <!-- Global RAG Toggle -->
+                         <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                             <TextBlock VerticalAlignment="Center"
+                                        Margin="0,0,8,0"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        FontSize="12">
+                                 <Run Text="📚 Global RAG"/>
+                                 <Run Text="(" /><Run Text="{Binding GlobalRagDocumentCount, Mode=OneWay}" /><Run Text=")" />
+                             </TextBlock>
+                             <CheckBox IsChecked="{Binding IsGlobalRagEnabled}"
+                                       Style="{StaticResource ModernToggleSwitch}"
+                                       ToolTip="Enable retrieval from your RAG Knowledge Base"/>
+                         </StackPanel>
+
+                     <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                         <TextBlock Text="🌐 Web Search"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,8,0"
+                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                    FontSize="12"/>
+                         <CheckBox IsChecked="{Binding IsWebSearchEnabled}"
+                                   Style="{StaticResource ModernToggleSwitch}"
+                                   ToolTip="Enable Web Search to fetch real-time info"/>
+                     </StackPanel>
+
+                     <!-- Enter to Send Toggle -->
+                     <StackPanel Orientation="Horizontal">
+                         <TextBlock Text="⏎ Enter to Send"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,8,0"
+                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                    FontSize="12"/>
+                         <CheckBox IsChecked="{Binding IsEnterToSendEnabled}"
+                                   Style="{StaticResource ModernToggleSwitch}"
+                                   ToolTip="Press Enter to send message"/>
+                     </StackPanel>
+                 </StackPanel>
+                     
+                     <!-- Attached Document Indicator -->
+                     <Border HorizontalAlignment="Left" 
+                             Background="{StaticResource SurfaceBrush}" 
+                             CornerRadius="4" 
+                             Padding="8,4" 
+                             BorderBrush="{StaticResource BorderBrush}"
+                             BorderThickness="1"
+                             Visibility="{Binding CurrentDocumentName, Converter={StaticResource BoolToVis}}">
+                         <StackPanel Orientation="Horizontal">
+                             <TextBlock Text="📎" Margin="0,0,6,0"/>
+                             <TextBlock Text="{Binding CurrentDocumentName}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Medium"/>
+                             <Button Content="✕" 
+                                     Command="{Binding RemoveDocumentCommand}"
+                                     Style="{StaticResource SecondaryButton}"
+                                     Padding="4,0"
+                                     Margin="8,0,0,0"
+                                     FontSize="11"
+                                     Height="16"
+                                     ToolTip="Remove attached document"/>
+                         </StackPanel>
+                     </Border>
+                </Grid>
+                
                 <TextBox x:Name="MessageInput"
+                         Grid.Row="1"
                          Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
                          Style="{StaticResource ModernTextBox}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          MaxHeight="150"
                          VerticalScrollBarVisibility="Auto"
-                         ToolTip="Ctrl+Enter to send">
+                         ToolTip="Ctrl+Enter to send (or Enter if enabled)"
+                         PreviewKeyDown="MessageInput_PreviewKeyDown">
                     <TextBox.InputBindings>
                         <KeyBinding Gesture="Ctrl+Enter" Command="{Binding SendMessageCommand}"/>
                         <KeyBinding Gesture="Ctrl+N" Command="{Binding NewSessionCommand}"/>
@@ -281,7 +369,15 @@
                     </TextBox.InputBindings>
                 </TextBox>
                 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0">
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Bottom">
+                    <!-- Upload Button -->
+                    <Button Command="{Binding UploadDocumentCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Content="📎"
+                            ToolTip="Attach document"
+                            Margin="0,0,8,0"
+                            Padding="10,6"/>
+
                     <!-- Send Button -->
                     <Button Command="{Binding SendMessageCommand}"
                             IsEnabled="{Binding IsGenerating, Converter={StaticResource InverseBool}}"
