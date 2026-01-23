@@ -11,6 +11,10 @@ on:
         required: true
         default: '1.0.0'
 
+permissions:
+  contents: write
+
+
 env:
   DOTNET_VERSION: '9.0.x'
   PROJECT_PATH: 'KaiROS.AI/KaiROS.AI.csproj'
