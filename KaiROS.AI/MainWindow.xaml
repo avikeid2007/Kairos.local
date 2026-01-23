@@ -109,7 +109,7 @@
                     <ListBoxItem Style="{StaticResource ModernListBoxItem}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📄" FontSize="18" Margin="0,0,12,0"/>
-                            <TextBlock Text="Documents" FontSize="14"/>
+                            <TextBlock Text="RAG" FontSize="14"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource ModernListBoxItem}">

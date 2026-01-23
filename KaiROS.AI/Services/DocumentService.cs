@@ -9,6 +9,7 @@ public interface IDocumentService
 {
     List<Models.Document> LoadedDocuments { get; }
     Task<Models.Document> LoadDocumentAsync(string filePath);
+    Task<string> GetDocumentContentAsync(string filePath);
     void RemoveDocument(string documentId);
     void ClearAllDocuments();
     string GetContextForQuery(string query, int maxChunks = 3);
@@ -24,7 +25,6 @@ public class DocumentService : IDocumentService
     public List<Models.Document> LoadedDocuments => _documents.ToList();
 
     public async Task<Models.Document> LoadDocumentAsync(string filePath)
-
     {
         System.Diagnostics.Debug.WriteLine($"[RAG] Loading document: {filePath}");
 
@@ -46,25 +46,10 @@ public class DocumentService : IDocumentService
 
         try
         {
-            // Extract text content based on file type
-            if (document.Type == DocumentType.Word)
-            {
-                System.Diagnostics.Debug.WriteLine("[RAG] Reading as Word document...");
-                document.Content = await ReadWordDocumentAsync(filePath);
-            }
-            else if (document.Type == DocumentType.Pdf)
-            {
-                System.Diagnostics.Debug.WriteLine("[RAG] Reading as PDF document...");
-                document.Content = await ReadPdfDocumentAsync(filePath);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("[RAG] Reading as text file...");
-                document.Content = await ReadTextFileAsync(filePath);
-            }
+            // Extract text content using shared method
+            document.Content = await GetDocumentContentAsync(filePath);
 
             System.Diagnostics.Debug.WriteLine($"[RAG] Content extracted: {document.Content?.Length ?? 0} characters");
-            System.Diagnostics.Debug.WriteLine($"[RAG] First 200 chars: {document.Content?.Substring(0, Math.Min(200, document.Content?.Length ?? 0))}");
 
             // Create chunks for RAG (with safety)
             if (!string.IsNullOrEmpty(document.Content))
@@ -79,7 +64,7 @@ public class DocumentService : IDocumentService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[RAG] ERROR reading file: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[RAG] ERROR loading file: {ex.Message}");
             document.Content = $"Error reading file: {ex.Message}";
             document.Chunks = new List<DocumentChunk>();
         }
@@ -87,6 +72,123 @@ public class DocumentService : IDocumentService
         _documents.Add(document);
         System.Diagnostics.Debug.WriteLine($"[RAG] Document added. Total documents: {_documents.Count}");
         return document;
+    }
+
+    public async Task<string> GetDocumentContentAsync(string filePath)
+    {
+        if (!File.Exists(filePath)) return string.Empty;
+
+        var extension = Path.GetExtension(filePath).ToLower();
+        var type = GetDocumentType(extension);
+
+        try
+        {
+            if (type == DocumentType.Word)
+            {
+                System.Diagnostics.Debug.WriteLine("[RAG] Reading as Word document...");
+                return await ReadWordDocumentAsync(filePath);
+            }
+            else if (type == DocumentType.Pdf)
+            {
+                System.Diagnostics.Debug.WriteLine("[RAG] Reading as PDF document...");
+                var content = await ReadPdfDocumentAsync(filePath);
+
+                // OCR Fallback: If text extraction yields too little content, try OCR
+                if (string.IsNullOrWhiteSpace(content) || content.Trim().Length < 50)
+                {
+                    System.Diagnostics.Debug.WriteLine("[RAG] Text extraction result empty or minimal. Attempting OCR...");
+                    try
+                    {
+                        var ocrContent = await ReadPdfWithOcrAsync(filePath);
+                        if (!string.IsNullOrWhiteSpace(ocrContent))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[RAG] OCR successful. Extracted {ocrContent.Length} chars.");
+                            return ocrContent;
+                        }
+                    }
+                    catch (Exception ocrEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[RAG] OCR failed: {ocrEx.Message}");
+                    }
+                }
+
+                return content;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[RAG] Reading as text file...");
+                return await ReadTextFileAsync(filePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[RAG] Error extracting text: {ex.Message}");
+            throw;
+        }
+    }
+
+    private static async Task<string> ReadPdfWithOcrAsync(string filePath)
+    {
+        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            return string.Empty;
+
+        try
+        {
+            var sb = new StringBuilder();
+
+            // 1. Load PDF using Windows.Data.Pdf
+            var file = await Windows.Storage.StorageFile.GetFileFromPathAsync(filePath);
+            var pdfDocument = await Windows.Data.Pdf.PdfDocument.LoadFromFileAsync(file);
+
+            // 2. Initialize OCR Engine
+            var ocrEngine = Windows.Media.Ocr.OcrEngine.TryCreateFromUserProfileLanguages();
+            if (ocrEngine == null)
+            {
+                // Fallback to English if user profile language not supported
+                ocrEngine = Windows.Media.Ocr.OcrEngine.TryCreateFromLanguage(new Windows.Globalization.Language("en-US"));
+            }
+
+            if (ocrEngine == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[RAG-OCR] Failed to create OCR Engine.");
+                return string.Empty;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[RAG-OCR] Processing {pdfDocument.PageCount} pages with OCR...");
+
+            // 3. Process each page
+            for (uint i = 0; i < pdfDocument.PageCount; i++)
+            {
+                using var page = pdfDocument.GetPage(i);
+
+                // Render page to stream
+                using var stream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+                await page.RenderToStreamAsync(stream);
+
+                // Create SoftwareBitmap from stream
+                var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(stream);
+                using var softwareBitmap = await decoder.GetSoftwareBitmapAsync();
+
+                // Run OCR
+                var result = await ocrEngine.RecognizeAsync(softwareBitmap);
+
+                if (result.Lines.Count > 0)
+                {
+                    foreach (var line in result.Lines)
+                    {
+                        sb.AppendLine(line.Text);
+                    }
+                    sb.AppendLine(); // Spacing between pages
+                }
+            }
+
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[RAG-OCR] Error: {ex.Message}");
+            return string.Empty;
+        }
     }
 
     public void RemoveDocument(string documentId)
