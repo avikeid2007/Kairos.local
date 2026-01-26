@@ -103,7 +103,7 @@ public partial class App : System.Windows.Application
 
         // RaaS Services
         services.AddSingleton<IRagSourceProvider, FileSourceProvider>();
-        // Add other providers here
+        services.AddSingleton<IRagSourceProvider, WebSourceProvider>();
         services.AddSingleton<IRaasService, RaasService>();
 
         // ViewModels

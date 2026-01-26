@@ -14,6 +14,7 @@ public interface IRaasService
     Task DeleteConfigurationAsync(string id);
     
     Task AddSourceAsync(string configId, string filePath);
+    Task AddWebSourceAsync(string configId, string url);
     Task RemoveSourceAsync(string configId, RagSource source);
     
     Task StartServiceAsync(string configId);

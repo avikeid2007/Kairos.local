@@ -333,10 +333,26 @@
                                 Text="Sources (Documents/Links)" />
                             <Button
                                 Grid.Column="1"
-                                Command="{Binding AddSourceToServiceCommand}"
-                                CommandParameter="{Binding SelectedConfiguration}"
-                                Content="+ Add Source"
-                                Style="{StaticResource SecondaryButton}" />
+                                Content="+ Add Source ▾"
+                                Click="OpenContextMenu_Click"
+                                Style="{StaticResource SecondaryButton}"
+                                Tag="{Binding}">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem
+                                            Command="{Binding PlacementTarget.Tag.AddFileSourceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                            CommandParameter="{Binding PlacementTarget.Tag.SelectedConfiguration, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                            Header="📄 File" />
+                                        <MenuItem
+                                            Command="{Binding PlacementTarget.Tag.AddWebSourceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                            CommandParameter="{Binding PlacementTarget.Tag.SelectedConfiguration, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                            Header="🌐 Web URL" />
+                                        <Separator />
+                                        <MenuItem Header="🗄️ Database (Reset soon)" IsEnabled="False" />
+                                        <MenuItem Header="💻 GitHub (Reset soon)" IsEnabled="False" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
                         </Grid>
 
                         <!--  Sources List  -->

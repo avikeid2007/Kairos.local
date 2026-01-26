@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using KaiROS.AI.Models;
 using KaiROS.AI.Services;
 using System.Collections.ObjectModel;
-using System.Windows;
 
 namespace KaiROS.AI.ViewModels;
 
@@ -190,7 +189,7 @@ public partial class DocumentViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task AddSourceToService(RaasConfiguration config)
+    private async Task AddFileSource(RaasConfiguration config)
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
@@ -202,6 +201,58 @@ public partial class DocumentViewModel : ViewModelBase
         {
             await _raasService.AddSourceAsync(config.Id, dialog.FileName);
         }
+    }
+
+    [RelayCommand]
+    private async Task AddWebSource(RaasConfiguration config)
+    {
+        // Simple Input Dialog Logic
+        var url = ShowInputDialog("Enter Website URL:", "Add Web Source", "https://");
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            await _raasService.AddWebSourceAsync(config.Id, url);
+        }
+    }
+
+    private string ShowInputDialog(string text, string title, string defaultText = "")
+    {
+        // Minimal InputBox Implementation using WPF Window
+        var window = new System.Windows.Window
+        {
+            Width = 400,
+            Height = 180,
+            Title = title,
+            WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+            ResizeMode = System.Windows.ResizeMode.NoResize,
+            Background = (System.Windows.Media.Brush)System.Windows.Application.Current.Resources["CardBrush"] ?? System.Windows.Media.Brushes.White,
+        };
+
+        var stack = new System.Windows.Controls.StackPanel { Margin = new System.Windows.Thickness(20) };
+        
+        var label = new System.Windows.Controls.TextBlock { Text = text, Margin = new System.Windows.Thickness(0,0,0,10), Foreground = (System.Windows.Media.Brush)System.Windows.Application.Current.Resources["TextPrimaryBrush"] ?? System.Windows.Media.Brushes.Black };
+        var textBox = new System.Windows.Controls.TextBox { Text = defaultText, Margin = new System.Windows.Thickness(0,0,0,20), Padding = new System.Windows.Thickness(5) };
+        
+        var btnPanel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = System.Windows.HorizontalAlignment.Right };
+        var okBtn = new System.Windows.Controls.Button { Content = "Add", Width = 80, Height = 30, IsDefault = true, Foreground = System.Windows.Media.Brushes.White, Padding = new System.Windows.Thickness(0), Style = (System.Windows.Style)System.Windows.Application.Current.Resources["AccentButton"] };
+        var cancelBtn = new System.Windows.Controls.Button { Content = "Cancel", Width = 80, Height = 30, IsCancel = true, Margin = new System.Windows.Thickness(10,0,0,0), Foreground = System.Windows.Media.Brushes.White, Padding = new System.Windows.Thickness(0), Style = (System.Windows.Style)System.Windows.Application.Current.Resources["SecondaryButton"] };
+
+        okBtn.Click += (s, e) => { window.DialogResult = true; window.Close(); };
+        cancelBtn.Click += (s, e) => { window.DialogResult = false; window.Close(); };
+
+        btnPanel.Children.Add(okBtn);
+        btnPanel.Children.Add(cancelBtn);
+
+        stack.Children.Add(label);
+        stack.Children.Add(textBox);
+        stack.Children.Add(btnPanel);
+        
+        window.Content = stack;
+
+        if (window.ShowDialog() == true)
+        {
+            return textBox.Text;
+        }
+        return string.Empty;
     }
     
     [RelayCommand]

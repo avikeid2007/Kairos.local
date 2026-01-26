@@ -157,6 +157,31 @@ public class RaasService : IRaasService
         config.Sources.Add(source);
     }
     
+    public async Task AddWebSourceAsync(string configId, string url)
+    {
+        var config = Configurations.FirstOrDefault(c => c.Id == configId);
+        if (config == null) return;
+
+        if (string.IsNullOrWhiteSpace(url)) return;
+
+        // 1. Create Source Object
+        var sourceId = Guid.NewGuid().ToString();
+        var source = new RagSource
+        {
+            Id = sourceId,
+            Name = url, // Display Name same as URL for now, user can rename later if we implement rename
+            Value = url,
+            Type = RagSourceType.Web,
+            IsEnabled = true
+        };
+        
+        // 2. DB Insert
+        await _databaseService.AddRagSourceAsync(configId, source);
+        
+        // 3. Update UI
+        config.Sources.Add(source);
+    }
+    
     public async Task RemoveSourceAsync(string configId, RagSource source)
     {
         var config = Configurations.FirstOrDefault(c => c.Id == configId);
