@@ -53,11 +53,11 @@ jobs:
     - name: Build MSIX Package
       shell: powershell
       run: |
-        # Locate MakeAppx
-        $makeappx = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "makeappx.exe" | Select-Object -First 1
+        # Locate MakeAppx (x64 specific)
+        $makeappx = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "makeappx.exe" | Where-Object { $_.FullName -like "*\x64\*" } | Select-Object -First 1
         
         if (-not $makeappx) {
-            Write-Error "MakeAppx.exe not found!"
+            Write-Error "MakeAppx.exe (x64) not found!"
             exit 1
         }
         
@@ -71,11 +71,11 @@ jobs:
     - name: Sign MSIX Package
       shell: powershell
       run: |
-        # Locate SignTool
-        $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "signtool.exe" | Select-Object -First 1
+        # Locate SignTool (x64 specific)
+        $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "signtool.exe" | Where-Object { $_.FullName -like "*\x64\*" } | Select-Object -First 1
         
         if (-not $signtool) {
-            Write-Error "SignTool.exe not found!"
+            Write-Error "SignTool.exe (x64) not found!"
             exit 1
         }
         
