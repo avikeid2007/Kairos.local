@@ -290,18 +290,18 @@
                 
                 <Grid Grid.ColumnSpan="2" Margin="0,0,0,8">
                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                         <!-- Global RAG Toggle -->
+                         <!-- Knowledge Base Selector -->
                          <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
-                             <TextBlock VerticalAlignment="Center"
+                             <TextBlock Text="🧠 Knowledge Base"
+                                        VerticalAlignment="Center"
                                         Margin="0,0,8,0"
                                         Foreground="{StaticResource TextSecondaryBrush}"
-                                        FontSize="12">
-                                 <Run Text="📚 Global RAG"/>
-                                 <Run Text="(" /><Run Text="{Binding GlobalRagDocumentCount, Mode=OneWay}" /><Run Text=")" />
-                             </TextBlock>
-                             <CheckBox IsChecked="{Binding IsGlobalRagEnabled}"
-                                       Style="{StaticResource ModernToggleSwitch}"
-                                       ToolTip="Enable retrieval from your RAG Knowledge Base"/>
+                                        FontSize="12"/>
+                             <ComboBox ItemsSource="{Binding AvailableKnowledgeBases}" 
+                                       SelectedItem="{Binding SelectedKnowledgeBase}"
+                                       Width="180"
+                                       Padding="6,4"
+                                       VerticalContentAlignment="Center"/>
                          </StackPanel>
 
                      <StackPanel Orientation="Horizontal" Margin="0,0,16,0">

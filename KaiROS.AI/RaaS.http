@@ -1,0 +1,53 @@
+@port = 5001
+@host = http://localhost:{{port}}
+
+# Increase timeout to 300 seconds (5 minutes) for LLM generation
+# @timeout 300
+
+### 1. Health Check
+GET {{host}}/health
+
+### 1. Health Check
+GET {{host}}/health
+
+### 2. Chat Completion (Non-Streaming)
+# @timeout 900000
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello! Who are you?"
+    }
+  ]
+}
+
+### 3. Chat Completion with RAG Context
+# @timeout 300
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Summarize the uploaded documents."
+    }
+  ]
+}
+
+### 4. Chat Completion (Streaming)
+# @timeout 300
+POST {{host}}/chat/stream
+Content-Type: application/json
+
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tell me a short story about a robot."
+    }
+  ]
+}

@@ -372,7 +372,8 @@ Content-Type: application/json
         }
         
         // Parse request body
-        using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+        // Parse request body
+        using var reader = new StreamReader(request.InputStream, Encoding.UTF8);
         var body = await reader.ReadToEndAsync();
         
         SimpleChatRequest? chatRequest;

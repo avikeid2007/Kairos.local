@@ -101,6 +101,11 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IApiService, ApiService>();
         services.AddSingleton<IWebSearchService, WebSearchService>();
 
+        // RaaS Services
+        services.AddSingleton<IRagSourceProvider, FileSourceProvider>();
+        // Add other providers here
+        services.AddSingleton<IRaasService, RaasService>();
+
         // ViewModels
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<ModelCatalogViewModel>();

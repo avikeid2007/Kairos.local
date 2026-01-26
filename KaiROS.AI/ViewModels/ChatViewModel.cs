@@ -15,6 +15,8 @@ public partial class ChatViewModel : ViewModelBase
     private readonly IModelManagerService _modelManager;
     private readonly ISessionService _sessionService;
     private readonly IExportService _exportService;
+    private readonly IDocumentService _documentService;
+    private readonly IRaasService _raasService;
     private CancellationTokenSource? _currentInferenceCts;
 
     [ObservableProperty]
@@ -75,36 +77,46 @@ public partial class ChatViewModel : ViewModelBase
     private string _searchText = string.Empty;
 
     [ObservableProperty]
-    private bool _isGlobalRagEnabled;
-
-    [ObservableProperty]
     private bool _isEnterToSendEnabled;
 
     [ObservableProperty]
     private string _currentDocumentName = string.Empty;
+    
+    // --- RAG Selection ---
+    
+    [ObservableProperty]
+    private ObservableCollection<string> _availableKnowledgeBases = new() 
+    { 
+        "None" 
+    };
+
+    [ObservableProperty]
+    private string _selectedKnowledgeBase = "None"; // Default to None
 
     [ObservableProperty]
     private int _globalRagDocumentCount;
 
     private string _currentDocumentContext = string.Empty;
 
-    private readonly IDocumentService _documentService;
-
-    public ChatViewModel(IChatService chatService, IModelManagerService modelManager, ISessionService sessionService, IExportService exportService, IDocumentService documentService)
+    public ChatViewModel(IChatService chatService, IModelManagerService modelManager, ISessionService sessionService, IExportService exportService, IDocumentService documentService, IRaasService raasService)
     {
         _chatService = chatService;
         _modelManager = modelManager;
         _sessionService = sessionService;
         _exportService = exportService;
         _documentService = documentService;
+        _raasService = raasService;
 
-        IsWebSearchEnabled = false; // Default to off
-        IsGlobalRagEnabled = false; // Default to off
-        IsEnterToSendEnabled = true; // Default to On (Ctrl+Enter to send)
+        IsWebSearchEnabled = false;
+        IsEnterToSendEnabled = true;
 
         _chatService.StatsUpdated += OnStatsUpdated;
         _modelManager.ModelLoaded += OnModelLoaded;
         _modelManager.ModelUnloaded += OnModelUnloaded;
+        
+        // Listen to config changes to update list? 
+        // Ideally we'd subscribe to _raasService.Configurations.CollectionChanged
+        _raasService.Configurations.CollectionChanged += (s, e) => UpdateKnowledgeBaseList();
     }
 
     public override async Task InitializeAsync()
@@ -112,6 +124,43 @@ public partial class ChatViewModel : ViewModelBase
         await _sessionService.InitializeAsync();
         await LoadSessionsAsync();
         GlobalRagDocumentCount = _documentService.LoadedDocuments.Count;
+        
+        await _raasService.InitializeAsync(); // ensure loaded
+        UpdateKnowledgeBaseList();
+    }
+    
+    private void UpdateKnowledgeBaseList()
+    {
+        // specific logic to preserve selection if possible
+        var current = SelectedKnowledgeBase;
+        
+        AvailableKnowledgeBases.Clear();
+        AvailableKnowledgeBases.Add("None");
+        // User removed Global Knowledge tab, so we remove it here too
+        
+        foreach (var config in _raasService.Configurations)
+        {
+            // Only add running services? User said "saved RAG configuration", implies any? 
+            // But if not running, we can't get context unless we load it on demand. 
+            // For now, let's list all, but if not running, we might WARN or try to start it.
+            // Requirement said "Use saved... as global RAG". Should probably work even if REST API is off?
+            // If I implemented ApiServer to own the RagEngine, then I need the ApiServer to be Alive (Running) to use it.
+            // So listing only Running services makes sense, OR start on demand.
+            // Let's filter by Running for simplicity, or show all and check IsRunning.
+            
+            // Add all configurations
+            // User can select them, and we handle the "Not Running" case in SendMessage
+            AvailableKnowledgeBases.Add($"Service: {config.Name}");
+        }
+        
+        if (AvailableKnowledgeBases.Contains(current))
+        {
+            SelectedKnowledgeBase = current;
+        }
+        else
+        {
+            SelectedKnowledgeBase = "None";
+        }
     }
 
     private async Task LoadSessionsAsync()
@@ -167,25 +216,19 @@ public partial class ChatViewModel : ViewModelBase
 
                 if (File.Exists(filePath))
                 {
-                    // Use DocumentService to parse content (supports PDF, Docx, etc.)
                     var extractedContent = await _documentService.GetDocumentContentAsync(filePath);
 
                     if (string.IsNullOrWhiteSpace(extractedContent))
                     {
                         System.Diagnostics.Debug.WriteLine($"[ChatViewModel] WARNING: No text extracted from {fileName}");
-                        // You might want to bind this to a UI property to show the user
                         _currentDocumentContext = string.Empty;
                         CurrentDocumentName = string.Empty;
-                        // Assuming there is a way to show error, possibly reuse existing mechanism or just log for now
-                        // Ideally: ErrorMessage = "No text found in document. It might be scanned/image-based.";
                     }
                     else
                     {
                         _currentDocumentContext = extractedContent;
                         CurrentDocumentName = fileName;
-                        System.Diagnostics.Debug.WriteLine($"[ChatViewModel] Extracted {_currentDocumentContext.Length} chars from {fileName}");
-
-                        // Optional: trim if too large
+                        
                         if (_currentDocumentContext.Length > 50000)
                         {
                             _currentDocumentContext = _currentDocumentContext.Substring(0, 50000);
@@ -219,7 +262,6 @@ public partial class ChatViewModel : ViewModelBase
             return;
         }
 
-        // Create or get current session
         if (CurrentSession == null)
         {
             var modelName = _modelManager.ActiveModel?.DisplayName;
@@ -227,22 +269,44 @@ public partial class ChatViewModel : ViewModelBase
             Sessions.Insert(0, CurrentSession);
         }
 
-        // Add user message
         var userMessage = ChatMessage.User(UserInput);
         Messages.Add(new ChatMessageViewModel(userMessage));
         await _sessionService.AddMessageAsync(CurrentSession.Id, userMessage);
         CurrentSession.MessageCount++;
 
-        // Update session title from first message (when it's the first user message)
-        if (CurrentSession.MessageCount == 1)
+         if (CurrentSession.MessageCount == 1)
         {
             CurrentSession.Title = ChatSession.GenerateTitle(UserInput);
             await _sessionService.UpdateSessionAsync(CurrentSession);
         }
 
+        // --- Determine RAG Context ---
+        string? ragContext = null;
+        if (SelectedKnowledgeBase == "Global Knowledge Base")
+        {
+            ragContext = _documentService.GetContextForQuery(UserInput, 3);
+        }
+        else if (SelectedKnowledgeBase.StartsWith("Service: "))
+        {
+             var serviceName = SelectedKnowledgeBase.Substring(9);
+             var config = _raasService.Configurations.FirstOrDefault(c => c.Name == serviceName);
+             if (config != null)
+             {
+                 var server = _raasService.GetServer(config.Id);
+                 if (server != null && server.IsRunning)
+                 {
+                     ragContext = server.RagEngine.GetContext(UserInput, 3);
+                 }
+                 else
+                 {
+                     // Service not running
+                     ragContext = "[System: The selected RAG service is not running. Answer based on general knowledge only.]";
+                 }
+             }
+        }
+        
         UserInput = string.Empty;
 
-        // Prepare messages for inference
         var allMessages = new List<ChatMessage>();
         if (!string.IsNullOrWhiteSpace(SystemPrompt))
         {
@@ -250,7 +314,6 @@ public partial class ChatViewModel : ViewModelBase
         }
         allMessages.AddRange(Messages.Select(m => m.Message));
 
-        // Create assistant message for streaming
         var assistantMessage = ChatMessage.Assistant(string.Empty);
         assistantMessage.IsStreaming = true;
         var assistantVm = new ChatMessageViewModel(assistantMessage);
@@ -264,8 +327,8 @@ public partial class ChatViewModel : ViewModelBase
             await foreach (var token in _chatService.GenerateResponseStreamAsync(
                 allMessages,
                 IsWebSearchEnabled,
-                _currentDocumentContext, // Pass uploaded doc
-                IsGlobalRagEnabled,      // Pass global RAG toggle
+                _currentDocumentContext, 
+                ragContext,      // Pass resolved context!
                 _currentInferenceCts.Token))
             {
                 assistantVm.AppendContent(token);
@@ -281,14 +344,12 @@ public partial class ChatViewModel : ViewModelBase
         }
         finally
         {
-            // Clean up the final message content (remove ### and other artifacts)
             assistantVm.CleanupContent();
             assistantVm.Message.IsStreaming = false;
             assistantVm.IsStreaming = false;
             IsGenerating = false;
             _currentInferenceCts = null;
 
-            // Save assistant message to database
             if (CurrentSession != null && !string.IsNullOrEmpty(assistantVm.Content))
             {
                 await _sessionService.AddMessageAsync(CurrentSession.Id, assistantVm.Message);
@@ -313,13 +374,12 @@ public partial class ChatViewModel : ViewModelBase
         TotalTokens = 0;
         MemoryUsage = "N/A";
         ElapsedTime = "0s";
-        RemoveDocument(); // Clear uploaded doc on reset
+        RemoveDocument();
     }
 
     [RelayCommand]
     private async Task NewSession()
     {
-        // Save current session if exists
         CurrentSession = null;
         Messages.Clear();
         _chatService.ClearContext();
@@ -327,19 +387,16 @@ public partial class ChatViewModel : ViewModelBase
         TotalTokens = 0;
         MemoryUsage = "N/A";
         ElapsedTime = "0s";
-        RemoveDocument(); // Clear uploaded doc on new session
+        RemoveDocument();
     }
 
     [RelayCommand]
     private async Task LoadSession(ChatSession session)
     {
         if (session == null) return;
-
-        // Load session and its messages
         CurrentSession = await _sessionService.GetSessionAsync(session.Id);
         if (CurrentSession == null) return;
 
-        // Clear current messages and load from session
         Messages.Clear();
         _chatService.ClearContext();
 
@@ -348,7 +405,6 @@ public partial class ChatViewModel : ViewModelBase
             Messages.Add(new ChatMessageViewModel(msg));
         }
 
-        // Restore system prompt if saved
         if (!string.IsNullOrEmpty(CurrentSession.SystemPrompt))
         {
             SystemPrompt = CurrentSession.SystemPrompt;
@@ -364,11 +420,8 @@ public partial class ChatViewModel : ViewModelBase
     private async Task DeleteSession(ChatSession session)
     {
         if (session == null) return;
-
         await _sessionService.DeleteSessionAsync(session.Id);
         Sessions.Remove(session);
-
-        // If deleting current session, clear it
         if (CurrentSession?.Id == session.Id)
         {
             CurrentSession = null;
@@ -387,10 +440,7 @@ public partial class ChatViewModel : ViewModelBase
     private void ToggleSearch()
     {
         IsSearchVisible = !IsSearchVisible;
-        if (!IsSearchVisible)
-        {
-            SearchText = string.Empty;
-        }
+        if (!IsSearchVisible) SearchText = string.Empty;
     }
 
     [RelayCommand]
@@ -403,12 +453,7 @@ public partial class ChatViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportChatAsMarkdown()
     {
-        if (CurrentSession == null || Messages.Count == 0)
-        {
-            ErrorMessage = "No conversation to export";
-            return;
-        }
-
+        if (CurrentSession == null || Messages.Count == 0) return;
         var messages = Messages.Select(m => m.Message).ToList();
         await _exportService.ExportWithDialogAsync(CurrentSession, messages, ExportFormat.Markdown);
     }
@@ -416,12 +461,7 @@ public partial class ChatViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportChatAsJson()
     {
-        if (CurrentSession == null || Messages.Count == 0)
-        {
-            ErrorMessage = "No conversation to export";
-            return;
-        }
-
+        if (CurrentSession == null || Messages.Count == 0) return;
         var messages = Messages.Select(m => m.Message).ToList();
         await _exportService.ExportWithDialogAsync(CurrentSession, messages, ExportFormat.Json);
     }
@@ -429,12 +469,7 @@ public partial class ChatViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportChatAsText()
     {
-        if (CurrentSession == null || Messages.Count == 0)
-        {
-            ErrorMessage = "No conversation to export";
-            return;
-        }
-
+        if (CurrentSession == null || Messages.Count == 0) return;
         var messages = Messages.Select(m => m.Message).ToList();
         await _exportService.ExportWithDialogAsync(CurrentSession, messages, ExportFormat.Text);
     }
@@ -444,6 +479,9 @@ public partial class ChatViewModel : ViewModelBase
     {
         IsSystemPromptExpanded = !IsSystemPromptExpanded;
     }
+    
+    [RelayCommand]
+    private void CopyContent() { /* ... handled in item view model or pass parameter ... */ }
 }
 
 public partial class ChatMessageViewModel : ObservableObject
@@ -461,12 +499,11 @@ public partial class ChatMessageViewModel : ObservableObject
     public bool IsSystem => Message.Role == ChatRole.System;
     public string Timestamp => Message.Timestamp.ToString("HH:mm");
 
-    // Streaming optimization - batch tokens for smoother UI updates
     private readonly System.Text.StringBuilder _tokenBuffer = new();
     private System.Windows.Threading.DispatcherTimer? _flushTimer;
     private int _pendingTokenCount;
-    private const int BATCH_TOKEN_COUNT = 15;  // Flush after this many tokens
-    private const int FLUSH_INTERVAL_MS = 50;   // Or flush after this many ms
+    private const int BATCH_TOKEN_COUNT = 15;  
+    private const int FLUSH_INTERVAL_MS = 50;  
 
     public ChatMessageViewModel(ChatMessage message)
     {
@@ -477,20 +514,10 @@ public partial class ChatMessageViewModel : ObservableObject
 
     public void AppendContent(string text)
     {
-        // Buffer the token instead of immediate UI update
         _tokenBuffer.Append(text);
         _pendingTokenCount++;
-
-        // Flush if buffer is large enough
-        if (_pendingTokenCount >= BATCH_TOKEN_COUNT)
-        {
-            FlushBuffer();
-        }
-        else
-        {
-            // Start timer to flush after interval
-            EnsureFlushTimer();
-        }
+        if (_pendingTokenCount >= BATCH_TOKEN_COUNT) FlushBuffer();
+        else EnsureFlushTimer();
     }
 
     private void EnsureFlushTimer()
@@ -503,30 +530,21 @@ public partial class ChatMessageViewModel : ObservableObject
             };
             _flushTimer.Tick += (s, e) => FlushBuffer();
         }
-
-        if (!_flushTimer.IsEnabled)
-        {
-            _flushTimer.Start();
-        }
+        if (!_flushTimer.IsEnabled) _flushTimer.Start();
     }
 
     private void FlushBuffer()
     {
         _flushTimer?.Stop();
-
         if (_tokenBuffer.Length == 0) return;
-
-        // Batch update the Content property (single UI update)
         Content += _tokenBuffer.ToString();
         Message.Content = Content;
-
         _tokenBuffer.Clear();
         _pendingTokenCount = 0;
     }
 
     public void FinalizeStreaming()
     {
-        // Called when streaming ends - flush any remaining tokens
         FlushBuffer();
         _flushTimer?.Stop();
         _flushTimer = null;
@@ -534,19 +552,11 @@ public partial class ChatMessageViewModel : ObservableObject
 
     public void CleanupContent()
     {
-        // Ensure all buffered content is flushed first
         FlushBuffer();
-
-        // Remove unwanted tokens from the final content
         var unwantedPatterns = new[] { "###", "\n###", "User:", "\nUser:", "Human:", "\nHuman:", "<|im_end|>", "<|assistant|>" };
         var cleaned = Content;
-        foreach (var pattern in unwantedPatterns)
-        {
-            cleaned = cleaned.Replace(pattern, "");
-        }
-        // Trim whitespace
-        cleaned = cleaned.Trim();
-        Content = cleaned;
+        foreach (var pattern in unwantedPatterns) cleaned = cleaned.Replace(pattern, "");
+        Content = cleaned.Trim();
         Message.Content = Content;
     }
 
@@ -555,15 +565,7 @@ public partial class ChatMessageViewModel : ObservableObject
     {
         if (!string.IsNullOrEmpty(Content))
         {
-            try
-            {
-                System.Windows.Clipboard.SetText(Content);
-            }
-            catch (Exception)
-            {
-                // Clipboard access can fail if another app is using it
-            }
+            try { System.Windows.Clipboard.SetText(Content); } catch { }
         }
     }
 }
-

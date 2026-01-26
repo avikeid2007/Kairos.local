@@ -11,7 +11,7 @@ public interface IChatService
     Task<string> GenerateResponseAsync(IEnumerable<ChatMessage> messages, bool useWebSearch, CancellationToken cancellationToken = default);
     IAsyncEnumerable<string> GenerateResponseStreamAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default);
     IAsyncEnumerable<string> GenerateResponseStreamAsync(IEnumerable<ChatMessage> messages, bool useWebSearch, CancellationToken cancellationToken = default);
-    IAsyncEnumerable<string> GenerateResponseStreamAsync(IEnumerable<ChatMessage> messages, bool useWebSearch, string? sessionContext, bool useGlobalRag, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<string> GenerateResponseStreamAsync(IEnumerable<ChatMessage> messages, bool useWebSearch, string? sessionContext, string? ragContext, CancellationToken cancellationToken = default);
     void ClearContext();
 
     event EventHandler<string>? TokenGenerated;
