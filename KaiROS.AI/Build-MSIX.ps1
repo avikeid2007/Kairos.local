@@ -13,7 +13,7 @@
     The version number for the MSIX package (e.g., 1.0.7)
 
 .EXAMPLE
-    .\Build-MSIX.ps1 -Version 1.0.8
+    .\Build-MSIX.ps1 -Version 1.0.7
 #>
 
 param(
@@ -31,8 +31,8 @@ $ManifestSource = Join-Path $ScriptDir "Package.appxmanifest"
 $ManifestDest = Join-Path $PublishDir "AppxManifest.xml"
 $MsixFileName = "KaiROS.AI-$Version.msix"
 $MsixPath = Join-Path $ProjectRoot $MsixFileName
-$PfxPath = Join-Path $ProjectRoot "KaiROS.pfx"
-$CerPath = Join-Path $ProjectRoot "KaiROS.cer"
+$PfxPath = Join-Path $ScriptDir "KaiROS.pfx"
+$CerPath = Join-Path $ScriptDir "KaiROS.cer"
 $PfxPassword = "KaiROS123"
 
 # Windows SDK paths
