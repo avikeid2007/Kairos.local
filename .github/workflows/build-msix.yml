@@ -1,0 +1,93 @@
+name: Build MSIX Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version Number (e.g. 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Decode PFX Certificate
+      shell: powershell
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.PFX_BASE64 }}")
+        [IO.File]::WriteAllBytes("KaiROS.AI/KaiROS_CI.pfx", $pfx_cert_byte)
+
+    - name: Publish Application
+      run: |
+        dotnet publish KaiROS.AI/KaiROS.AI.csproj -c Release -r win-x64 --self-contained true -o msix-publish
+
+    - name: Prepare Manifest and Assets
+      shell: powershell
+      run: |
+        $version = "${{ github.event.inputs.version }}.0"
+        Write-Host "Setting version to: $version"
+        
+        # Read Manifest
+        [xml]$xml = Get-Content "KaiROS.AI/Package.appxmanifest"
+        
+        # Update Version
+        # Format: 1.0.0.0
+        $xml.Package.Identity.Version = $version
+        
+        # Save to Publish Directory
+        $xml.Save("msix-publish/AppxManifest.xml")
+        
+        # Copy Assets Folder
+        Copy-Item "KaiROS.AI/Assets" -Destination "msix-publish/Assets" -Recurse -Force
+
+    - name: Build MSIX Package
+      shell: powershell
+      run: |
+        # Locate MakeAppx
+        $makeappx = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "makeappx.exe" | Select-Object -First 1
+        
+        if (-not $makeappx) {
+            Write-Error "MakeAppx.exe not found!"
+            exit 1
+        }
+        
+        Write-Host "Using MakeAppx from: $($makeappx.FullName)"
+        
+        $msixName = "KaiROS.AI-${{ github.event.inputs.version }}.msix"
+        
+        # Pack
+        & $makeappx.FullName pack /d msix-publish /p $msixName /o
+
+    - name: Sign MSIX Package
+      shell: powershell
+      run: |
+        # Locate SignTool
+        $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "signtool.exe" | Select-Object -First 1
+        
+        if (-not $signtool) {
+            Write-Error "SignTool.exe not found!"
+            exit 1
+        }
+        
+        Write-Host "Using SignTool from: $($signtool.FullName)"
+        
+        $msixName = "KaiROS.AI-${{ github.event.inputs.version }}.msix"
+        
+        # Sign
+        & $signtool.FullName sign /fd SHA256 /f "KaiROS.AI/KaiROS_CI.pfx" /p "${{ secrets.PFX_PASSWORD }}" /t http://timestamp.digicert.com $msixName
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: KaiROS-Installer
+        path: "*.msix"
